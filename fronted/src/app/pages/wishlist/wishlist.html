@@ -1,0 +1,46 @@
+<section class="wishlist-hero">
+  <p class="eyebrow">Ο λογαριασμός μου</p>
+  <h1>Λίστα επιθυμιών</h1>
+  <p class="hero-desc">Τα προϊόντα που έχεις αποθηκεύσει για αργότερα.</p>
+</section>
+
+<!-- Loading -->
+<div *ngIf="loading()" class="loading-state">
+  <span class="loading-ring"></span>
+  <h2>Φόρτωση αγαπημένων</h2>
+  <p>Παρακαλώ περίμενε.</p>
+</div>
+
+<!-- Empty state -->
+<div *ngIf="!loading() && products().length === 0" class="empty-state">
+  <mat-icon class="empty-icon">favorite_border</mat-icon>
+  <h2>Δεν έχεις αγαπημένα ακόμη</h2>
+  <p>Πρόσθεσε προϊόντα στη λίστα σου ενώ περιηγείσαι.</p>
+  <button mat-flat-button color="primary" routerLink="/">Εξερεύνηση προϊόντων</button>
+</div>
+
+<!-- Products grid -->
+<section *ngIf="!loading() && products().length > 0" class="product-grid" aria-label="Λίστα αγαπημένων">
+  <mat-card *ngFor="let p of products()" class="product-card">
+    <a class="product-media" [routerLink]="['/product', myEncode(p.id)]">
+      <img [src]="p.image" alt="Εικόνα προϊόντος">
+    </a>
+
+    <mat-card-header>
+      <mat-card-title>{{ p.name }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <p class="price">{{ p.price | number:'1.2-2' }} €</p>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-flat-button color="primary" [routerLink]="['/product', myEncode(p.id)]">
+        Προβολή προϊόντος
+      </button>
+      <button class="btn-remove" type="button" (click)="remove(p.id)" title="Αφαίρεση από αγαπημένα">
+        <mat-icon>favorite</mat-icon>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</section>

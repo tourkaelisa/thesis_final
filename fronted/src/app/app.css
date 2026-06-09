@@ -1,0 +1,274 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0fcff 0%, #f8fafc 100%);
+}
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  min-height: 100vh;
+  transition: grid-template-columns 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.app-layout.sidebar-collapsed {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+/* --- SIDEBAR ΤΕΡΜΑ ΠΑΝΩ --- */
+.category-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh; /* Πιάνει όλο το ύψος της οθόνης */
+  margin: 0;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(6, 182, 212, 0.2);
+  z-index: 40;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+}
+
+.sidebar-collapsed .category-sidebar {
+  opacity: 0;
+  transform: translateX(-100%);
+  pointer-events: none;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+}
+
+.sidebar-header span {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #0369a1;
+}
+
+.sidebar-close {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0369a1;
+  background: rgba(6, 182, 212, 0.1);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sidebar-close:hover {
+  background: rgba(6, 182, 212, 0.25);
+  color: #082f49;
+  transform: rotate(90deg) scale(1.1); /* Κάνει μια μικρή περιστροφή και μεγαλώνει! */
+}
+
+.sidebar-close mat-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.category-nav {
+  display: grid;
+  gap: 12px;
+}
+
+.category-nav a {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  color: #0f4563;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.category-nav a:hover {
+  background: #ffffff;
+  color: #0369a1;
+  transform: translateX(8px);
+  box-shadow: 0 6px 15px rgba(8, 47, 73, 0.05);
+}
+
+/* --- MAIN WRAPPER & HEADER --- */
+.main-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: 16px 24px;
+  background: transparent;
+  pointer-events: none;
+}
+
+.topbar,
+.topbar.mat-toolbar {
+  border-bottom: none !important;
+  pointer-events: auto;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  width: min(1420px, 100%);
+  margin: 0 auto;
+  padding: 0 12px 0 16px;
+  color: #082f49;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(8, 47, 73, 0.08);
+}
+
+/* --- ΥΠΟΛΟΙΠΑ ΣΤΟΙΧΕΙΑ ΜΕΝΟΥ --- */
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.menu-button { width: 44px; height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 0; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+.menu-button:hover { background: #ecfeff; transform: scale(1.05); }
+.menu-button span { width: 20px; height: 2px; background: #0369a1; border-radius: 2px; }
+
+.brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #082f49; }
+.brand-mark { width: 44px; height: 44px; display: grid; place-items: center; color: #ffffff; font-weight: 900; border-radius: 50%; background: linear-gradient(135deg, #0369a1, #06b6d4, #14b8a6); box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4); }
+.brand-text strong { display: block; font-size: 1.1rem; font-weight: 900; line-height: 1.1; }
+.brand-text small { display: block; margin-top: 2px; color: #0e7490; font-weight: 700; font-size: 0.8rem; }
+
+.top-nav { display: flex; align-items: center; justify-content: center; gap: 4px; position: relative; }
+
+/* Καθαροί σύνδεσμοι κειμένου — χωρίς πλαίσια/κύκλους */
+.nav-link {
+  position: relative;
+  text-decoration: none;
+  padding: 10px 18px 12px;
+  font-weight: 800;
+  color: #0f4563;
+  background: transparent;
+  border: none;
+  transition: color 0.25s ease;
+}
+.nav-link:hover { color: #0369a1; background: transparent; }
+.nav-link.active { color: #0369a1; }
+
+.nav-link-admin { color: #0891b2; }
+.nav-link-admin:hover, .nav-link-admin.active { color: #0369a1; }
+.nav-link-wishlist { display: flex; align-items: center; gap: 5px; color: #be185d; }
+.nav-link-wishlist:hover, .nav-link-wishlist.active { color: #be185d; }
+.nav-link-wishlist mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+/* Φωτεινό underline που γλιστράει στον ενεργό σύνδεσμο */
+.nav-indicator {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0369a1, #06b6d4, #14b8a6);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.75), 0 0 4px rgba(14, 184, 166, 0.6);
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+/* Το ghost-link (Σύνδεση) κρατά το pill στυλ του */
+.ghost-link { text-decoration: none; padding: 10px 20px; border-radius: 999px; font-weight: 800; color: #0f4563; transition: all 0.3s; }
+.ghost-link:hover { color: #0369a1; background: rgba(6, 182, 212, 0.1); }
+.account-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.primary-link { text-decoration: none; padding: 10px 20px; border-radius: 999px; font-weight: 800; color: #ffffff; background: linear-gradient(135deg, #0369a1, #06b6d4, #14b8a6); transition: all 0.3s; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3); }
+.primary-link:hover { transform: translateY(-3px); filter: brightness(1.1); }
+
+.page-shell { min-width: 0; min-height: calc(100vh - 92px); }
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.22);
+  border-radius: 999px;
+}
+
+.profile-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0369a1, #06b6d4, #14b8a6);
+}
+
+.profile-name {
+  color: #082f49;
+  font-size: 0.92rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.logout-button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #0369a1;
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.22);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 200ms ease, color 200ms ease, transform 200ms ease;
+}
+
+.logout-button:hover {
+  color: #be123c;
+  background: #fff1f2;
+  border-color: #fecdd3;
+  transform: scale(1.08);
+}
+
+.logout-button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* --- RESPONSIVE KINHTOY --- */
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .site-header { padding: 12px; }
+  .topbar { grid-template-columns: 1fr auto; }
+  .top-nav { display: none; }
+  .category-sidebar { position: fixed; left: 0; width: 320px; background: rgba(255, 255, 255, 0.95); }
+  .sidebar-backdrop { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(8, 47, 73, 0.4); backdrop-filter: blur(4px); border: 0; cursor: pointer; }
+}

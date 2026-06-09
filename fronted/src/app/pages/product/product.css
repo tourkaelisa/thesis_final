@@ -1,0 +1,333 @@
+:host {
+  display: block;
+  padding: 34px min(5vw, 56px) 64px;
+}
+
+.product-page {
+  width: min(1380px, 100%);
+  margin: 0 auto;
+}
+
+.product-hero {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.88fr) minmax(0, 1.12fr);
+  gap: clamp(24px, 5vw, 58px);
+  align-items: start;
+}
+
+.product-gallery,
+.product-summary,
+.rec-card,
+.loading-state {
+  border-radius: 8px;
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(235, 253, 255, 0.88));
+  box-shadow: 0 24px 62px rgba(8, 47, 73, 0.16);
+}
+
+.product-gallery {
+  position: sticky;
+  top: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(28px, 5vw, 56px);
+  padding-bottom: calc(clamp(28px, 5vw, 56px) + 9px);
+  background:
+    linear-gradient(135deg, rgba(186, 230, 253, 0.72), rgba(153, 246, 228, 0.56)),
+    #ffffff;
+}
+
+.product-gallery::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 9px;
+  background: linear-gradient(90deg, #38bdf8, #22d3ee, #2dd4bf, #67e8f9);
+}
+
+.gallery-badge {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 8px 12px;
+  color: #075985;
+  background: #cffafe;
+  border: 1px solid rgba(34, 211, 238, 0.42);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.product-gallery img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 30px 28px rgba(8, 47, 73, 0.18));
+  mix-blend-mode: multiply;
+}
+
+.product-summary {
+  padding: clamp(28px, 5vw, 54px);
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #0284c7;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.product-summary h1 {
+  margin: 0;
+  color: #082f49;
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.price {
+  margin: 14px 0;
+  color: #0284c7;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.summary-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.summary-actions button {
+  min-height: 48px;
+  padding: 0 22px;
+  font-weight: 900;
+}
+
+
+button.wishlisted {
+  color: #be123c !important;
+  border-color: #fecdd3 !important;
+}
+
+.trust-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 22px 0 28px;
+}
+
+.trust-row span {
+  padding: 13px 12px;
+  color: #075985;
+  background: #ecfeff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.spec-panel {
+  padding: 24px;
+  background:
+    linear-gradient(135deg, rgba(240, 249, 255, 0.94), rgba(236, 254, 255, 0.92));
+  border: 1px solid rgba(6, 182, 212, 0.18);
+  border-radius: 8px;
+}
+
+.spec-panel h2,
+.section-heading h2 {
+  margin: 0;
+  color: #082f49;
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+}
+
+.spec-panel ul {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spec-panel li {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.45fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(14, 165, 233, 0.16);
+}
+
+.spec-panel li:last-child {
+  border-bottom: 0;
+}
+
+.spec-panel strong {
+  color: #0e7490;
+}
+
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #0284c7;
+  text-decoration: none;
+  font-weight: 800;
+  transition: color 150ms;
+}
+
+.brand-link:hover {
+  color: #0369a1;
+  text-decoration: underline;
+}
+
+.brand-ext-icon {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+  vertical-align: middle;
+}
+
+.spec-panel span {
+  color: #082f49;
+  font-weight: 800;
+}
+
+.recommendations-section {
+  margin-top: 56px;
+  padding-top: 42px;
+  border-top: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.section-heading {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+  gap: 22px;
+}
+
+.rec-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  overflow: hidden;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.rec-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 62px rgba(8, 47, 73, 0.2);
+}
+
+.rec-media {
+  flex: 0 0 190px;
+  height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -18px -18px 16px;
+  padding: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(186, 230, 253, 0.66), rgba(153, 246, 228, 0.48));
+}
+
+.rec-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 12px 16px rgba(8, 47, 73, 0.14));
+  transition: transform 220ms ease;
+}
+
+.rec-card:hover .rec-media img {
+  transform: scale(1.07);
+}
+
+.rec-card mat-card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #082f49;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.rec-card button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: auto;
+  font-weight: 900;
+}
+
+.loading-state {
+  width: min(560px, calc(100% - 24px));
+  margin: 90px auto;
+  padding: 42px;
+  text-align: center;
+}
+
+.loading-ring {
+  width: 52px;
+  height: 52px;
+  display: inline-block;
+  border: 5px solid #cffafe;
+  border-top-color: #0284c7;
+  border-radius: 50%;
+  animation: spin 900ms linear infinite;
+}
+
+.loading-state h2 {
+  margin: 18px 0 8px;
+}
+
+.loading-state p {
+  margin: 0;
+  color: #0e7490;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 920px) {
+  .product-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .product-gallery {
+    position: relative;
+    top: auto;
+    min-height: 380px;
+  }
+}
+
+@media (max-width: 620px) {
+  :host {
+    padding: 18px 12px 42px;
+  }
+
+  .trust-row,
+  .spec-panel li {
+    grid-template-columns: 1fr;
+  }
+}

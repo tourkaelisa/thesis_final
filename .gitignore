@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Node / Angular
+fronted/node_modules/
+fronted/dist/
+fronted/.angular/
+
+# Local database (regenerated at runtime)
+users.db
+
+# OS
+Thumbs.db
+.DS_Store

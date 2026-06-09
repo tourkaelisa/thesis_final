@@ -1,0 +1,352 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix pto: <http://www.productontology.org/id/> .
+@prefix gr: <http://purl.org/goodrelations/v1#> .
+@prefix schema: <http://schema.org/> .
+@prefix eshop: <http://www.myeshop.gr/resource/> .
+@prefix prop: <http://www.myeshop.gr/property/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# ============================================================
+# ΓΕΝΙΚΟΣ ΕΛΕΓΧΟΣ ΤΙΜΗΣ ΓΙΑ ΟΛΑ ΤΑ ΠΡΟΪΟΝΤΑ 
+# ============================================================
+eshop:GlobalPriceShape a sh:NodeShape ;
+    sh:targetClass gr:ProductOrService ; 
+
+    # Έλεγχος για την ύπαρξη και τον τύπο της τιμής
+    sh:property [
+        sh:path schema:price ;
+        sh:minCount 1 ;
+        sh:datatype xsd:float ;
+        sh:message "Το προϊόν δεν διαθέτει έγκυρη τιμή." ;
+    ] ;
+
+    # Έλεγχος για το νόμισμα
+    sh:property [
+        sh:path schema:priceCurrency ;
+        sh:minCount 1 ;
+        sh:hasValue "EUR" ;
+        sh:message "Λείπει το νόμισμα ή δεν είναι EUR" ;
+    ] .
+
+# ============================================================
+# ΕΛΕΓΧΟΣ ΓΙΑ ΤΟ ΠΡΟΙΟΝ LAPTOP (16 Κανόνες)
+# ============================================================
+eshop:LaptopMasterShape a sh:NodeShape ;
+    sh:targetClass pto:Laptop ;
+
+    # 1. Τύπος ProductOrService
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Κανόνας 1: Λείπει η δήλωση ProductOrService" ] ;
+    
+    # 2. Τύπος Laptop
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Laptop ; sh:message "Κανόνας 2: Λείπει η δήλωση Laptop" ] ;
+
+    # 3. Όνομα
+    sh:property [ sh:path gr:name ; sh:minCount 1 ; sh:message "Κανόνας 3: Λείπει το Όνομα" ] ;
+
+    # --- ΤΕΧΝΙΚΑ ΧΑΡΑΚΤΗΡΙΣΤΙΚΑ (Με βάση τις μονάδες μέτρησης) ---
+
+    # 4. RAM (Μονάδα E34 - Gigabytes)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "E34" ] ] ;
+        sh:qualifiedMinCount 1 ; # Θα ελέγξουμε αν υπάρχει τουλάχιστον μία τιμή GB για τη RAM
+        sh:message "Κανόνας 4: Λείπει η RAM" ;
+    ] ;
+
+    # 5. Refresh Rate (Μονάδα HTZ - Hertz)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "HTZ" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 5: Λείπει το Refresh Rate" ;
+    ] ;
+
+    # 6. Screen Size (Μονάδα INH - Inches)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "INH" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 6: Λείπει το Screen Size (Ίντσες)" ;
+    ] ;
+
+    # 7. Storage (Επειδή είναι πάλι GB, θα ελέγξουμε αν υπάρχουν συνολικά 2 ιδιότητες με E34)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "E34" ] ] ;
+        sh:qualifiedMinCount 2 ; # 1 για RAM + 1 για Storage = 2
+        sh:message "Κανόνας 7: Λείπει το Storage (ή η RAM)" ;
+    ] ;
+
+    # 8. Weight (Μονάδα KGM - Grams)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "KGM" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 8: Λείπει το Βάρος" ;
+    ] ;
+
+    # 9. Χρώμα
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Κανόνας 9: Λείπει το Χρώμα" ] ;
+
+    # 10. Εικόνα
+    sh:property [ sh:path schema:image ; sh:minCount 1 ; sh:message "Κανόνας 10: Λείπει η Εικόνα" ] ;
+
+    # 11. Κατασκευαστής
+    sh:property [ sh:path schema:manufacturer ; sh:minCount 1 ; sh:message "Κανόνας 11: Λείπει ο Κατασκευαστής" ] ;
+
+    # 12. Λειτουργικό Σύστημα
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Κανόνας 12: Λείπει το Λειτουργικό Σύστημα" ] ;
+
+    # 13. Έτος Κυκλοφορίας
+    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Κανόνας 13: Λείπει το Έτος Κυκλοφορίας" ] ;
+
+    # 14. URL Skroutz
+    sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:message "Κανόνας 14: Λείπει το URL" ] ;
+
+    # 15. CPU Model
+    sh:property [ sh:path prop:cpu_model ; sh:minCount 1 ; sh:message "Κανόνας 15: Λείπει το CPU Model" ] ;
+
+    # 16. Screen Resolution
+    sh:property [ sh:path prop:screen_resolution ; sh:minCount 1 ; sh:message "Κανόνας 16: Λείπει η Ανάλυση Οθόνης" ] .
+
+# ============================================================
+# ΕΛΕΓΧΟΣ ΓΙΑ ΤΟ ΠΡΟΙΟΝ SMARTPHONE (15 Κανόνες)
+# ============================================================
+eshop:SmartphoneDetailedShape a sh:NodeShape ;
+    sh:targetClass pto:Smartphone ;
+
+    # 1. Τύπος ProductOrService
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Κανόνας 1: Λείπει η δήλωση ProductOrService" ] ;
+    
+    # 2. Τύπος Smartphone
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Smartphone ; sh:message "Κανόνας 2: Λείπει η δήλωση Smartphone" ] ;
+
+    # 3. Όνομα
+    sh:property [ sh:path gr:name ; sh:minCount 1 ; sh:message "Κανόνας 3: Λείπει το Όνομα" ] ;
+
+    # 4. Μπαταρία (Μονάδα MAH - Milliampere Hour)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "MAH" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 4: Λείπει η Μπαταρία (MAH)" ;
+    ] ;
+
+    # 5. Refresh Rate (Μονάδα HTZ - Hertz)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "HTZ" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 5: Λείπει το Refresh Rate" ;
+    ] ;
+
+    # 6. Screen Size (Μονάδα INH - Inches)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "INH" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 6: Λείπει το Μέγεθος Οθόνης (Ίντσες)" ;
+    ] ;
+
+    # 7. Storage (Μονάδα E34 - Gigabytes)
+    # Εδώ στα κινητά σου βλέπω μόνο το Storage σε GB (η RAM είναι στο όνομα), οπότε minCount 1
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "E34" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 7: Λείπει ο Αποθηκευτικός Χώρος (Storage)" ;
+    ] ;
+
+    # 8. Weight (Μονάδα GRM - Kilograms)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "GRM" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 8: Λείπει το Βάρος" ;
+    ] ;
+
+    # 9. Χρώμα
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Κανόνας 9: Λείπει το Χρώμα" ] ;
+
+    # 10. Εικόνα
+    sh:property [ sh:path schema:image ; sh:minCount 1 ; sh:message "Κανόνας 10: Λείπει η Εικόνα" ] ;
+
+    # 11. Κατασκευαστής (Apple)
+    sh:property [ sh:path schema:manufacturer ; sh:minCount 1 ; sh:message "Κανόνας 11: Λείπει ο Κατασκευαστής" ] ;
+
+    # 12. Λειτουργικό Σύστημα (iOS)
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Κανόνας 12: Λείπει το Λειτουργικό Σύστημα" ] ;
+
+    # 13. Έτος Κυκλοφορίας
+    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Κανόνας 13: Λείπει η Ημερομηνία Κυκλοφορίας" ] ;
+
+    # 14. URL
+    sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:message "Κανόνας 14: Λείπει το URL" ] ;
+
+    # 15. Ανάλυση Οθόνης (prop:)
+    sh:property [ sh:path prop:screen_resolution ; sh:minCount 1 ; sh:message "Κανόνας 15: Λείπει η Ανάλυση Οθόνης" ] .
+
+# ============================================================
+# ΕΛΕΓΧΟΣ ΓΙΑ ΤΟ ΠΡΟΙΟΝ ΤΗΛΕΟΡΑΣΗ (11 Κανόνες)
+# ============================================================
+eshop:TelevisionDetailedShape a sh:NodeShape ;
+    sh:targetClass pto:Television_set ;
+
+    # 1. Τύπος ProductOrService
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Κανόνας 1: Λείπει η δήλωση ProductOrService" ] ;
+    
+    # 2. Τύπος Television_set
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Television_set ; sh:message "Κανόνας 2: Λείπει η δήλωση Television_set" ] ;
+
+    # 3. Όνομα
+    sh:property [ sh:path gr:name ; sh:minCount 1 ; sh:message "Κανόνας 3: Λείπει το Όνομα" ] ;
+
+    # 4. Refresh Rate (Μονάδα HTZ - Hertz)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "HTZ" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 4: Λείπει το Refresh Rate" ;
+    ] ;
+
+    # 5. Screen Size (Μονάδα INH - Inches)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "INH" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 5: Λείπει το Μέγεθος Οθόνης (Ίντσες)" ;
+    ] ;
+
+    # 6. Weight (Μονάδα KGM - Kilograms)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "KGM" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 6: Λείπει το Βάρος" ;
+    ] ;
+
+    # 7. Εικόνα
+    sh:property [ sh:path schema:image ; sh:minCount 1 ; sh:message "Κανόνας 7: Λείπει η Εικόνα" ] ;
+
+    # 8. Κατασκευαστής (π.χ. Samsung)
+    sh:property [ sh:path schema:manufacturer ; sh:minCount 1 ; sh:message "Κανόνας 8: Λείπει ο Κατασκευαστής" ] ;
+
+    # 9. Λειτουργικό Σύστημα (π.χ. Tizen)
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Κανόνας 9: Λείπει το Λειτουργικό Σύστημα" ] ;
+
+    # 10. Έτος Κυκλοφορίας
+    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Κανόνας 10: Λείπει η Ημερομηνία Κυκλοφορίας" ] ;
+
+    # 11. URL Skroutz
+    sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:message "Κανόνας 11: Λείπει το URL" ] .
+
+# ============================================================
+# ΕΛΕΓΧΟΣ ΓΙΑ ΤΟ ΠΡΟΙΟΝ TABLET (14 Κανόνες)
+# ============================================================
+eshop:TabletDetailedShape a sh:NodeShape ;
+    sh:targetClass pto:Tablet_computer ;
+
+    # 1. Τύπος ProductOrService
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Κανόνας 1: Λείπει η δήλωση ProductOrService" ] ;
+
+    # 2. Τύπος Tablet_computer
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Tablet_computer ; sh:message "Κανόνας 2: Λείπει η δήλωση Tablet_computer" ] ;
+
+    # 3. Όνομα
+    sh:property [ sh:path gr:name ; sh:minCount 1 ; sh:message "Κανόνας 3: Λείπει το Όνομα" ] ;
+
+    # 4 & 6. RAM & Storage (Μονάδα E34 - Gigabytes)
+    # Επειδή και τα δύο εμφανίζονται ως ξεχωριστά nodes σε GB, απαιτούμε τουλάχιστον 2 εγγραφές.
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "E34" ] ] ;
+        sh:qualifiedMinCount 2 ;
+        sh:message "Κανόνες 4 & 6: Λείπει η RAM ή ο Αποθηκευτικός Χώρος (Storage)" ;
+    ] ;
+
+    # 5. Refresh Rate (Μονάδα HTZ - Hertz)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "HTZ" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 5: Λείπει το Refresh Rate" ;
+    ] ;
+
+    # 7. Weight (Μονάδα GRM - Kilograms)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "GRM" ] ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 7: Λείπει το Βάρος" ;
+    ] ;
+
+    # 8. Χρώμα
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Κανόνας 8: Λείπει το Χρώμα" ] ;
+
+    # 9. Εικόνα
+    sh:property [ sh:path schema:image ; sh:minCount 1 ; sh:message "Κανόνας 9: Λείπει η Εικόνα" ] ;
+
+    # 10. Κατασκευαστής (π.χ. Lenovo)
+    sh:property [ sh:path schema:manufacturer ; sh:minCount 1 ; sh:message "Κανόνας 10: Λείπει ο Κατασκευαστής" ] ;
+
+    # 11. Λειτουργικό Σύστημα (Android)
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Κανόνας 11: Λείπει το Λειτουργικό Σύστημα" ] ;
+
+    # 12. Έτος Κυκλοφορίας
+    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Κανόνας 12: Λείπει η Ημερομηνία Κυκλοφορίας" ] ;
+
+    # 13. URL Skroutz
+    sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:message "Κανόνας 13: Λείπει το URL" ] ;
+
+    # 14. Ανάλυση Οθόνης (prop:)
+    sh:property [ sh:path prop:screen_resolution ; sh:minCount 1 ; sh:message "Κανόνας 14: Λείπει η Ανάλυση Οθόνης" ] .
+
+# ============================================================
+# ΕΛΕΓΧΟΣ ΓΙΑ ΤΟ ΠΡΟΙΟΝ SMARTWATCH (11 Κανόνες)
+# ============================================================
+eshop:SmartwatchDetailedShape a sh:NodeShape ;
+    sh:targetClass pto:Smartwatch ;
+
+    # 1. Τύπος ProductOrService
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Κανόνας 1: Λείπει η δήλωση ProductOrService" ] ;
+
+    # 2. Τύπος Smartwatch
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Smartwatch ; sh:message "Κανόνας 2: Λείπει η δήλωση Smartwatch" ] ;
+
+    # 3. Όνομα
+    sh:property [ sh:path gr:name ; sh:minCount 1 ; sh:message "Κανόνας 3: Λείπει το Όνομα" ] ;
+
+    # 4. Μέγεθος Οθόνης (Μονάδα INH - Inches)
+    sh:property [
+        sh:path gr:quantitativeProductOrServiceProperty ;
+        sh:qualifiedValueShape [ 
+            sh:property [ 
+                sh:path gr:hasUnitOfMeasurement ; 
+                sh:hasValue "INH" 
+            ] 
+        ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Κανόνας 4: Λείπει το Μέγεθος Οθόνης (Ίντσες)" ;
+    ] ;
+
+    # 5. Χρώμα
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Κανόνας 5: Λείπει το Χρώμα" ] ;
+
+    # 6. Εικόνα
+    sh:property [ sh:path schema:image ; sh:minCount 1 ; sh:message "Κανόνας 6: Λείπει η Εικόνα" ] ;
+
+    # 7. Κατασκευαστής 
+    sh:property [ sh:path schema:manufacturer ; sh:minCount 1 ; sh:message "Κανόνας 7: Λείπει ο Κατασκευαστής" ] ;
+
+    # 8. Λειτουργικό Σύστημα
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Κανόνας 8: Λείπει το Λειτουργικό Σύστημα" ] ;
+
+    # 9. Έτος Κυκλοφορίας
+    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Κανόνας 9: Λείπει η Ημερομηνία Κυκλοφορίας" ] ;
+
+    # 10. URL Skroutz
+    sh:property [ sh:path schema:url ; sh:minCount 1 ; sh:message "Κανόνας 10: Λείπει το URL" ] ;
+
+    # 11. Ανάλυση Οθόνης (prop:)
+    sh:property [ sh:path prop:screen_resolution ; sh:minCount 1 ; sh:message "Κανόνας 11: Λείπει η Ανάλυση Οθόνης" ] .

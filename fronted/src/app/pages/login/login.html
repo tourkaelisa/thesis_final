@@ -1,0 +1,51 @@
+<section class="login-page">
+  <div class="login-panel">
+    <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <p class="eyebrow">Καλώς ήρθες ξανά</p>
+      <h2>Σύνδεση</h2>
+      <p class="form-intro">
+        Μπες στον λογαριασμό σου για να συνεχίσεις τις αγορές σου.
+      </p>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" autocomplete="email">
+        <mat-error *ngIf="loginForm.controls.email.hasError('required')">
+          Το email είναι υποχρεωτικό.
+        </mat-error>
+        <mat-error *ngIf="loginForm.controls.email.hasError('email')">
+          Συμπλήρωσε έγκυρο email.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Κωδικός</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="current-password">
+        <mat-error *ngIf="loginForm.controls.password.hasError('required')">
+          Ο κωδικός είναι υποχρεωτικός.
+        </mat-error>
+        <mat-error *ngIf="loginForm.controls.password.hasError('minlength')">
+          Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.
+        </mat-error>
+      </mat-form-field>
+
+      <div class="login-options">
+        <mat-checkbox formControlName="rememberMe">Να με θυμάσαι</mat-checkbox>
+        <button mat-button type="button" class="forgot-button">Ξέχασα τον κωδικό</button>
+      </div>
+
+      <p *ngIf="errorMessage()" class="form-error">
+        {{ errorMessage() }}
+      </p>
+
+      <button mat-flat-button color="primary" type="submit" class="submit-button" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Σύνδεση...' : 'Σύνδεση' }}
+      </button>
+
+      <p class="register-link">
+        Δεν έχεις λογαριασμό;
+        <a routerLink="/register">Κάνε εγγραφή</a>
+      </p>
+    </form>
+  </div>
+</section>

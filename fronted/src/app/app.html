@@ -1,0 +1,77 @@
+<div class="app-layout" [class.sidebar-collapsed]="!sidebarOpen">
+
+  <aside class="category-sidebar" aria-label="Κατηγορίες προϊόντων">
+    <div class="sidebar-header">
+      <span>Κατηγορίες</span>
+      <button type="button" class="sidebar-close" aria-label="Κλείσιμο κατηγοριών" (click)="closeSidebar()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <nav class="category-nav">
+      <a *ngFor="let category of categories" [routerLink]="category.route" (click)="closeSidebar()">
+        {{ category.label }}
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="site-header">
+      <mat-toolbar class="topbar">
+        <div class="topbar-left">
+          <button class="menu-button" type="button" [attr.aria-expanded]="sidebarOpen" (click)="toggleSidebar()">
+            <span></span>
+            <span></span>
+          </button>
+
+          <a class="brand" routerLink="/">
+            <span class="brand-mark">SS</span>
+            <span class="brand-text">
+              <strong>Semantic Shop</strong>
+              <small>Smart discovery</small>
+            </span>
+          </a>
+        </div>
+
+        <nav class="top-nav" #topNav>
+          <a class="nav-link" routerLink="/" routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">Αρχική</a>
+          <a *ngIf="currentUser()?.role === 2" class="nav-link nav-link-admin"
+             routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+          <a *ngIf="currentUser()" class="nav-link nav-link-wishlist"
+             routerLink="/wishlist" routerLinkActive="active">
+            <mat-icon>favorite</mat-icon>
+            Αγαπημένα
+          </a>
+          <span class="nav-indicator"
+                [style.left.px]="indicatorLeft()"
+                [style.width.px]="indicatorWidth()"></span>
+        </nav>
+
+        <div class="account-actions">
+          <ng-container *ngIf="currentUser() as user; else guestActions">
+            <div class="profile-actions">
+              <div class="profile-chip">
+                <span class="profile-icon">{{ userInitials() }}</span>
+                <span class="profile-name">{{ user.firstName }} {{ user.lastName }}</span>
+              </div>
+              <button class="logout-button" type="button" title="Αποσύνδεση" (click)="logout()">
+                <mat-icon>logout</mat-icon>
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-template #guestActions>
+            <a class="ghost-link" routerLink="/login">Σύνδεση</a>
+            <a class="primary-link" routerLink="/register">Εγγραφή</a>
+          </ng-template>
+        </div>
+      </mat-toolbar>
+    </header>
+
+    <button *ngIf="sidebarOpen" type="button" class="sidebar-backdrop" (click)="closeSidebar()"></button>
+
+    <main class="page-shell">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+</div>

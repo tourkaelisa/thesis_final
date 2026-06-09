@@ -1,0 +1,84 @@
+<section *ngIf="product(); else loadingProduct" class="product-page">
+  <div class="product-hero">
+    <div class="product-gallery">
+      <img [src]="product().image" alt="Product Image">
+    </div>
+
+    <div class="product-summary">
+      <p class="eyebrow">Product details</p>
+      <h1>{{ product().name }}</h1>
+      <p class="price">{{ product().price | number:'1.2-2' }} €</p>
+
+      <div class="summary-actions">
+        <button mat-flat-button color="primary">Προσθήκη στο καλάθι</button>
+        <button mat-stroked-button color="primary"
+                [class.wishlisted]="wishlisted()"
+                [disabled]="wishlisted()"
+                (click)="addToWishlist()">
+          {{ wishlisted() ? '♥ Στα αγαπημένα' : '♡ Αγαπημένα' }}
+        </button>
+      </div>
+
+
+
+      <section class="spec-panel">
+        <h2>Βασικά χαρακτηριστικά</h2>
+
+        <ul>
+          <li *ngIf="product().brand">
+            <strong>Κατασκευαστής</strong>
+            <span>
+              <a *ngIf="product().brandLink; else plainBrand"
+                 [href]="product().brandLink"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 class="brand-link">
+                {{ product().brand }}
+                <mat-icon class="brand-ext-icon">open_in_new</mat-icon>
+              </a>
+              <ng-template #plainBrand>{{ product().brand }}</ng-template>
+            </span>
+          </li>
+          <li *ngIf="product().os"><strong>Λειτουργικό</strong><span>{{ product().os }}</span></li>
+          <li *ngIf="product().cpu"><strong>Επεξεργαστής</strong><span>{{ product().cpu }}</span></li>
+          <li *ngIf="product().color"><strong>Χρώμα</strong><span>{{ product().color }}</span></li>
+          <li *ngIf="product().definition"><strong>Ανάλυση</strong><span>{{ product().definition }}</span></li>
+          <li *ngIf="product().releaseDate"><strong>Έτος κυκλοφορίας</strong><span>{{ product().releaseDate }}</span></li>
+          <li *ngFor="let spec of product().specs">
+            <strong>{{ spec.name }}</strong>
+            <span>{{ spec.value }} {{ spec.unit }}</span>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <section class="recommendations-section">
+    <div class="section-heading">
+      <p class="eyebrow">Recommended</p>
+      <h2>Παρόμοια προϊόντα</h2>
+    </div>
+
+    <div class="rec-grid">
+      <mat-card *ngFor="let rec of recommendations()" class="rec-card">
+        <a class="rec-media" [routerLink]="['/product', myEncode(rec.id)]">
+          <img [src]="rec.image" alt="{{ rec.name }}">
+        </a>
+
+        <mat-card-title>{{ rec.name }}</mat-card-title>
+
+        <button mat-flat-button color="primary" [routerLink]="['/product', myEncode(rec.id)]">
+          Προβολή
+        </button>
+      </mat-card>
+    </div>
+  </section>
+</section>
+
+<ng-template #loadingProduct>
+  <div class="loading-state">
+    <span class="loading-ring"></span>
+    <h2>Φόρτωση στοιχείων προϊόντος</h2>
+    <p>Ετοιμάζουμε τα χαρακτηριστικά και τις προτάσεις.</p>
+  </div>
+</ng-template>

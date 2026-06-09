@@ -1,0 +1,108 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix pto: <http://www.productontology.org/id/> .
+@prefix gr: <http://purl.org/goodrelations/v1#> .
+@prefix schema: <http://schema.org/> .
+@prefix eshop: <http://www.myeshop.gr/resource/> .
+@prefix prop: <http://www.myeshop.gr/property/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# ============================================================
+# ΚΟΙΝΟΙ ΥΠΟΧΡΕΩΤΙΚΟΙ ΚΑΝΟΝΕΣ ΓΙΑ ΟΛΑ ΤΑ ΠΡΟΪΟΝΤΑ
+# Ελέγχονται μόνο τα κύρια χαρακτηριστικά που παράγονται
+# ΥΠΟΧΡΕΩΤΙΚΑ (χωρίς συνθήκη) για κάθε προϊόν κατά τη
+# μετατροπή σε RDF — άρα τα διαθέτουν όλα τα προϊόντα.
+# ============================================================
+eshop:GlobalProductShape a sh:NodeShape ;
+    sh:targetClass gr:ProductOrService ;
+
+    sh:property [
+        sh:path schema:price ;
+        sh:minCount 1 ;
+        sh:datatype xsd:float ;
+        sh:message "Το προϊόν δεν διαθέτει έγκυρη τιμή." ;
+    ] ;
+    sh:property [
+        sh:path schema:priceCurrency ;
+        sh:minCount 1 ;
+        sh:hasValue "EUR" ;
+        sh:message "Λείπει το νόμισμα ή δεν είναι EUR." ;
+    ] ;
+    sh:property [
+        sh:path gr:name ;
+        sh:minCount 1 ;
+        sh:message "Λείπει το όνομα του προϊόντος." ;
+    ] ;
+    sh:property [
+        sh:path schema:image ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Λείπει η εικόνα του προϊόντος." ;
+    ] ;
+    sh:property [
+        sh:path schema:url ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Λείπει το URL του προϊόντος." ;
+    ] ;
+    sh:property [
+        sh:path schema:manufacturer ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Λείπει ο κατασκευαστής του προϊόντος." ;
+    ] .
+
+# ============================================================
+# ΚΑΝΟΝΕΣ ΑΝΑ ΚΑΤΗΓΟΡΙΑ
+# Κάθε προϊόν πρέπει να φέρει σωστά και τους δύο τύπους του:
+# τον γενικό (gr:ProductOrService) και τον ειδικό της κατηγορίας.
+# ============================================================
+eshop:LaptopShape a sh:NodeShape ;
+    sh:targetClass pto:Laptop ;
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Το laptop δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Laptop ; sh:message "Το laptop δεν έχει δηλωθεί ως pto:Laptop." ] .
+
+eshop:SmartphoneShape a sh:NodeShape ;
+    sh:targetClass pto:Smartphone ;
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Το κινητό δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Smartphone ; sh:message "Το κινητό δεν έχει δηλωθεί ως pto:Smartphone." ] .
+
+eshop:TabletShape a sh:NodeShape ;
+    sh:targetClass pto:Tablet_computer ;
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Το tablet δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Tablet_computer ; sh:message "Το tablet δεν έχει δηλωθεί ως pto:Tablet_computer." ] .
+
+eshop:TelevisionShape a sh:NodeShape ;
+    sh:targetClass pto:Television_set ;
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Η τηλεόραση δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Television_set ; sh:message "Η τηλεόραση δεν έχει δηλωθεί ως pto:Television_set." ] .
+
+eshop:SmartwatchShape a sh:NodeShape ;
+    sh:targetClass pto:Smartwatch ;
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Το smartwatch δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
+    sh:property [ sh:path rdf:type ; sh:hasValue pto:Smartwatch ; sh:message "Το smartwatch δεν έχει δηλωθεί ως pto:Smartwatch." ] .
+
+# ============================================================
+# (ΠΡΟΑΙΡΕΤΙΚΟ) ΑΥΣΤΗΡΟΤΕΡΟΙ ΚΑΝΟΝΕΣ
+# Πρόσθεσε σε όποια κατηγορία θέλεις ΜΟΝΟ τα χαρακτηριστικά που
+# ΔΙΑΘΕΤΟΥΝ ΟΛΑ τα προϊόντα της. Αν κάποιο λείπει έστω από ένα
+# προϊόν, το validation θα αποτύχει (sh:conforms false) — γι'
+# αυτό κράτησε μόνο τα σίγουρα.
+#
+# Ποιοτικό χαρακτηριστικό (π.χ. λειτουργικό, CPU, ανάλυση οθόνης):
+#   sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Λείπει το λειτουργικό σύστημα." ] ;
+#   sh:property [ sh:path prop:cpu_model ; sh:minCount 1 ; sh:message "Λείπει το μοντέλο CPU." ] ;
+#   sh:property [ sh:path prop:screen_resolution ; sh:minCount 1 ; sh:message "Λείπει η ανάλυση οθόνης." ] ;
+#   sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Λείπει το χρώμα." ] ;
+#   sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Λείπει το έτος κυκλοφορίας." ] ;
+#
+# Ποσοτικό χαρακτηριστικό (π.χ. RAM σε GB / μονάδα "E34"):
+#   sh:property [
+#       sh:path gr:quantitativeProductOrServiceProperty ;
+#       sh:qualifiedValueShape [ sh:property [ sh:path gr:hasUnitOfMeasurement ; sh:hasValue "E34" ] ] ;
+#       sh:qualifiedMinCount 1 ;
+#       sh:message "Λείπει η RAM (μονάδα GB)." ;
+#   ] ;
+#
+# Κωδικοί μονάδων: E34=GB, INH=ίντσες, HTZ=Hz, KGM=kg, GRM=gr, MAH=mAh, C62=MP, E37=pixels
+# ============================================================

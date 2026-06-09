@@ -1,0 +1,130 @@
+<section class="category-hero">
+  <p class="eyebrow">Semantic shopping</p>
+  <h1>{{ categoryName() }}</h1>
+  <p class="hero-desc">
+    Ανακάλυψε προϊόντα με καθαρή εικόνα, γρήγορη σύγκριση τιμών και έξυπνες
+    προτάσεις βασισμένες στα χαρακτηριστικά τους.
+  </p>
+</section>
+
+<!-- Loading -->
+<div *ngIf="products().length === 0" class="loading-state">
+  <span class="loading-ring"></span>
+  <h2>Φόρτωση προϊόντων</h2>
+  <p>Παρακαλώ περίμενε όσο βρίσκουμε τα καλύτερα αποτελέσματα.</p>
+</div>
+
+<!-- Filter panel -->
+<div *ngIf="products().length > 0" class="filter-bar">
+
+  <div class="filter-bar-header">
+    <div class="filter-bar-left">
+      <button class="filter-toggle-btn" type="button" (click)="filtersOpen = !filtersOpen">
+        <mat-icon>tune</mat-icon>
+        <span>Φίλτρα</span>
+        <span *ngIf="activeFilterCount > 0" class="filter-count-badge">{{ activeFilterCount }}</span>
+        <mat-icon class="chevron" [class.open]="filtersOpen">expand_more</mat-icon>
+      </button>
+
+      <div class="filter-bar-actions" *ngIf="filtersOpen">
+        <button class="btn-search" type="button" (click)="search()" [disabled]="searching()">
+          <mat-icon>{{ searching() ? 'hourglass_empty' : 'search' }}</mat-icon>
+          {{ searching() ? 'Αναζήτηση...' : 'Αναζήτηση' }}
+        </button>
+        <button class="btn-clear" type="button" *ngIf="activeFilterCount > 0" (click)="clearFilters()">
+          <mat-icon>close</mat-icon>
+          Καθαρισμός
+        </button>
+      </div>
+    </div>
+
+    <span class="product-count-pill" *ngIf="products().length > 0">
+      <strong>{{ filteredProducts().length }}</strong>
+      {{ activeFilterCount > 0 ? 'αποτελέσματα' : 'προϊόντα' }}
+      <span *ngIf="activeFilterCount > 0" class="count-total"> / {{ products().length }}</span>
+    </span>
+  </div>
+
+  <div class="filter-body" *ngIf="filtersOpen">
+
+    <!-- Price range -->
+    <div class="filter-group">
+      <p class="filter-group-title">Τιμή (€)</p>
+      <div class="price-range">
+        <div class="price-input-wrap">
+          <label>Από</label>
+          <input type="number" [min]="priceMin" [max]="filterPriceMax"
+                 [(ngModel)]="filterPriceMin">
+        </div>
+        <div class="price-input-wrap">
+          <label>Έως</label>
+          <input type="number" [min]="filterPriceMin" [max]="priceMax"
+                 [(ngModel)]="filterPriceMax">
+        </div>
+      </div>
+    </div>
+
+    <!-- Categorical filter groups (checkboxes) -->
+    <div *ngFor="let group of filterGroups()" class="filter-group">
+      <p class="filter-group-title">{{ group.label }}</p>
+      <div class="filter-options">
+        <label *ngFor="let val of group.values" class="filter-checkbox-label">
+          <input type="checkbox"
+                 [checked]="isChecked(group.key, val)"
+                 (change)="toggleFilter(group.key, val)">
+          <span class="checkmark"></span>
+          <span class="filter-val-text">{{ val }}</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Quantitative filter groups (range inputs) -->
+    <div *ngFor="let qg of quantGroups()" class="filter-group">
+      <p class="filter-group-title">{{ qg.label }}</p>
+      <div class="price-range">
+        <div class="price-input-wrap">
+          <label>Από</label>
+          <input type="number" [min]="qg.absMin" [max]="qg.activeMax" [(ngModel)]="qg.activeMin">
+        </div>
+        <div class="price-input-wrap">
+          <label>Έως</label>
+          <input type="number" [min]="qg.activeMin" [max]="qg.absMax" [(ngModel)]="qg.activeMax">
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Products grid -->
+<section *ngIf="filteredProducts().length > 0" class="product-grid" aria-label="Λίστα προϊόντων">
+  <mat-card *ngFor="let p of filteredProducts()" class="product-card">
+    <a class="product-media" [routerLink]="['/product', myEncode(p.id)]">
+      <img [src]="p.image" alt="Εικόνα προϊόντος">
+    </a>
+
+    <mat-card-header>
+      <mat-card-title>{{ p.name }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <p class="price">{{ p.price | number:'1.2-2' }} €</p>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-flat-button color="primary" [routerLink]="['/product', myEncode(p.id)]">
+        Προβολή προϊόντος
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</section>
+
+<!-- Empty state (after filtering) -->
+<div *ngIf="products().length > 0 && filteredProducts().length === 0" class="empty-state">
+  <mat-icon class="empty-icon">search_off</mat-icon>
+  <h2>Δεν βρέθηκαν προϊόντα</h2>
+  <p>Κανένα προϊόν δεν αντιστοιχεί στα φίλτρα που επέλεξες.</p>
+  <button mat-flat-button color="primary" (click)="clearFilters()">
+    Καθαρισμός φίλτρων
+  </button>
+</div>

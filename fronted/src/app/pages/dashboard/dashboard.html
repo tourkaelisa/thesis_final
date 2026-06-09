@@ -1,0 +1,114 @@
+<section class="dashboard">
+
+  <div class="dash-header">
+    <div>
+      <p class="eyebrow">Admin Panel</p>
+      <h1>Dashboard</h1>
+    </div>
+    <div class="dash-meta">
+      <span *ngIf="lastUpdated() as lu">Ενημερώθηκε: {{ lu | date:'HH:mm:ss' }}</span>
+      <button class="refresh-btn" (click)="load()">
+        <mat-icon>refresh</mat-icon> Ανανέωση
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!stats()" class="loading-state">
+    <span class="loading-ring"></span>
+    <p>Φόρτωση δεδομένων...</p>
+  </div>
+
+  <ng-container *ngIf="stats() as s">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <mat-icon class="kpi-icon kpi-icon-blue" aria-hidden="true">people</mat-icon>
+        <span class="kpi-value">{{ s.total_users }}</span>
+        <span class="kpi-label">Εγγεγραμμένοι χρήστες</span>
+      </div>
+      <div class="kpi-card">
+        <mat-icon class="kpi-icon kpi-icon-teal" aria-hidden="true">inventory_2</mat-icon>
+        <span class="kpi-value">{{ s.total_products }}</span>
+        <span class="kpi-label">Σύνολο προϊόντων</span>
+      </div>
+      <div class="kpi-card">
+        <mat-icon class="kpi-icon kpi-icon-rose" aria-hidden="true">favorite</mat-icon>
+        <span class="kpi-value">{{ s.total_wishlists }}</span>
+        <span class="kpi-label">Προσθήκες στη Λίστα Επιθυμιών</span>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+
+      <!-- Top 10 Leaderboard -->
+      <div class="dash-card leaderboard-card">
+        <h2 class="card-title">
+          <mat-icon class="title-icon">emoji_events</mat-icon>
+          Top 10 δημοφιλή προϊόντα
+        </h2>
+        <div class="leaderboard">
+          <div *ngFor="let p of s.top_products; let i = index"
+               class="leader-row"
+               [class.podium-gold]="i === 0"
+               [class.podium-silver]="i === 1"
+               [class.podium-bronze]="i === 2">
+            <span class="leader-medal">
+              <mat-icon *ngIf="i < 3" class="medal-icon" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">military_tech</mat-icon>
+              <span *ngIf="i >= 3" class="leader-num">#{{ i + 1 }}</span>
+            </span>
+            <span class="leader-name">{{ p.name }}</span>
+            <div class="leader-bar-wrap">
+              <div class="leader-bar" [style.width.%]="(p.popularity / maxPopularity()) * 100"></div>
+            </div>
+            <span class="leader-score">{{ p.popularity }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Κατηγορίες tiles -->
+      <div class="dash-card">
+        <h2 class="card-title">
+          <mat-icon class="title-icon">bar_chart</mat-icon>
+          Κατηγορίες
+        </h2>
+        <div class="cat-grid">
+          <div *ngFor="let c of s.category_counts; let i = index"
+               class="cat-tile" [ngClass]="catClass(i)">
+            <mat-icon class="cat-tile-icon">{{ catIcon(i) }}</mat-icon>
+            <span class="cat-tile-count">{{ c.count }}</span>
+            <span class="cat-tile-name">{{ c.category }}</span>
+            <span class="cat-tile-price">ø {{ avgPriceFor(c.category) | number:'1.0-0' }} €</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top 5 Brands -->
+      <div class="dash-card">
+        <h2 class="card-title">
+          <mat-icon class="title-icon">star</mat-icon>
+          Top 5 Brands
+        </h2>
+        <div class="brands-list">
+          <div *ngFor="let b of s.top_brands; let i = index" class="brand-row">
+            <span class="brand-rank">#{{ i + 1 }}</span>
+            <span class="brand-avatar" [ngClass]="'brand-color-' + i">{{ b.brand.charAt(0) }}</span>
+            <div class="brand-info">
+              <span class="brand-name">{{ b.brand }}</span>
+              <div class="brand-bar-track">
+                <div class="brand-bar-fill" [ngClass]="'brand-bar-' + i"
+                     [style.width.%]="(b.count / s.top_brands[0].count) * 100"></div>
+              </div>
+            </div>
+            <div class="brand-count">
+              {{ b.count }}
+              <small>προϊόντα</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
+
+</section>
