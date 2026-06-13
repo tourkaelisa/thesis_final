@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { Router, RouterLink } from '@angular/router';
@@ -14,16 +14,14 @@ import { AuthService } from '../../services/auth';
   templateUrl: './home.html',
   styleUrls: ['./home.css']
 })
-export class Home implements OnInit, OnDestroy {
+export class Home implements OnInit {
   private auth = inject(AuthService);
 
   searchTerm = '';
-  slides = signal<any[]>([]);
-  activeSlide = signal(0);
+  popularProducts = signal<any[]>([]);
   personalizedProducts = signal<any[]>([]);
-  private timer: any;
 
-  private readonly POPULAR_CACHE_KEY = 'popularSlides';
+  private readonly POPULAR_CACHE_KEY = 'popularProducts';
   private personalizedCacheKey(userId: number): string {
     return `personalizedProducts_${userId}`;
   }
@@ -42,10 +40,9 @@ export class Home implements OnInit, OnDestroy {
     const user = this.auth.currentUser();
 
     // Άμεση εμφάνιση από cache (αν υπάρχει) — ενημερώνεται με φρέσκα δεδομένα μόλις έρθουν.
-    const cachedSlides = this.readCache(this.POPULAR_CACHE_KEY);
-    if (cachedSlides.length) {
-      this.slides.set(cachedSlides);
-      this.startTimer();
+    const cachedPopular = this.readCache(this.POPULAR_CACHE_KEY);
+    if (cachedPopular.length) {
+      this.popularProducts.set(cachedPopular);
     }
 
     if (user) {
@@ -57,9 +54,8 @@ export class Home implements OnInit, OnDestroy {
 
     this.streamService.listenToStore().subscribe(message => {
       if (message.type === 'POPULAR_PRODUCTS') {
-        this.slides.set(message.slides);
-        this.writeCache(this.POPULAR_CACHE_KEY, message.slides);
-        this.startTimer();
+        this.popularProducts.set(message.products);
+        this.writeCache(this.POPULAR_CACHE_KEY, message.products);
       } else if (message.type === 'PERSONALIZED_RECOMMENDATIONS') {
         this.personalizedProducts.set(message.products);
         if (user) {
@@ -71,34 +67,8 @@ export class Home implements OnInit, OnDestroy {
     this.streamService.requestPopularProducts();
 
     if (user) {
-      this.streamService.requestPersonalizedRecommendations(user.id);
+      this.streamService.requestPersonalizedRecommendations();
     }
-  }
-
-  ngOnDestroy() {
-    clearInterval(this.timer);
-  }
-
-  private startTimer() {
-    clearInterval(this.timer);
-    this.timer = setInterval(() => {
-      this.activeSlide.update(i => (i + 1) % this.slides().length);
-    }, 4000);
-  }
-
-  goToSlide(index: number) {
-    this.activeSlide.set(index);
-    this.startTimer();
-  }
-
-  prevSlide() {
-    this.activeSlide.update(i => (i - 1 + this.slides().length) % this.slides().length);
-    this.startTimer();
-  }
-
-  nextSlide() {
-    this.activeSlide.update(i => (i + 1) % this.slides().length);
-    this.startTimer();
   }
 
   private readCache(key: string): any[] {

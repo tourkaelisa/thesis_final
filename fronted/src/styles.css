@@ -37,6 +37,31 @@ img {
   max-width: 100%;
 }
 
+/* --- GLOBAL: smooth εμφάνιση σε ΚΑΘΕ σελίδα (το component που φορτώνει ο router
+   μπαίνει ως επόμενος αδελφός του router-outlet· το animation ξανατρέχει σε κάθε
+   αλλαγή route αυτόματα, χωρίς να χρειάζεται κώδικας ανά σελίδα). --- */
+@keyframes routeFadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+router-outlet + * {
+  display: block;
+  animation: routeFadeSlideUp 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  router-outlet + * {
+    animation: none;
+  }
+}
+
 button,
 a,
 input {
@@ -47,6 +72,133 @@ input {
   --mdc-elevated-card-container-shape: 8px;
 }
 
+/* ============================================================================
+   GLOBAL PRODUCT CARD — ΕΝΙΑΙΑ εμφάνιση προϊόντων σε ΟΛΕΣ τις σελίδες
+   (αρχική, αναζήτηση, κατηγορίες, αγαπημένα). Όλη η κάρτα είναι clickable
+   link προς το προϊόν· χωρίς ξεχωριστό κουμπί «Προβολή προϊόντος».
+   ============================================================================ */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 24px;
+  width: min(1380px, 100%);
+  margin-inline: auto;
+}
+
+.product-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-decoration: none;
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(235, 253, 255, 0.9));
+  box-shadow: 0 18px 42px rgba(8, 47, 73, 0.12);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.product-card:hover {
+  transform: translateY(-7px);
+  border-color: rgba(14, 165, 233, 0.54);
+  box-shadow: 0 28px 62px rgba(8, 47, 73, 0.2);
+}
+
+.product-card-media {
+  flex: 0 0 210px;
+  height: 210px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(186, 230, 253, 0.5), rgba(153, 246, 228, 0.42)),
+    #ffffff;
+}
+
+.product-card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 12px 18px rgba(8, 47, 73, 0.14));
+  transition: transform 220ms ease;
+}
+
+.product-card:hover .product-card-media img {
+  transform: scale(1.07);
+}
+
+.product-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 16px 18px;
+}
+
+.product-card-tag {
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #0284c7;
+  background: #e0f2fe;
+}
+
+.product-card-name {
+  margin: 0;
+  color: #082f49;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-card-price {
+  margin: 0;
+  color: #0284c7;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+/* Κουμπί αφαίρεσης από αγαπημένα — overlay πάνω δεξιά στην κάρτα */
+.product-card-remove {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #e11d48;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(8, 47, 73, 0.18);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.product-card-remove:hover {
+  transform: scale(1.1);
+  background: #ffffff;
+}
+
+.product-card-remove mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
 .mat-toolbar,
 .mat-mdc-toolbar,
 .mat-mdc-toolbar::after,
@@ -55,3 +207,67 @@ input {
   border: none !important;
   box-shadow: none !important;
 }
+
+/* ── Dashboard: chart mode toggle ── */
+.chart-toggle.mat-button-toggle-group {
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid #bae6fd;
+  background: #f0f9ff;
+}
+
+.chart-toggle .mat-button-toggle {
+  color: #0e7490;
+  background: transparent;
+  font-weight: 800;
+  font-size: 0.82rem;
+  border: none;
+}
+
+.chart-toggle .mat-button-toggle-checked {
+  color: #fff;
+  background: linear-gradient(135deg, #0284c7, #06b6d4);
+}
+
+.chart-toggle .mat-button-toggle-button { height: auto; }
+
+.chart-toggle .mat-button-toggle-label-content {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 38px;
+  padding: 0 18px;
+}
+
+.chart-toggle .mat-button-toggle mat-icon {
+  font-size: 1.05rem;
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+/* ροζ παραλλαγή (δραστηριότητα wishlist) */
+.chart-toggle-rose.mat-button-toggle-group {
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+.chart-toggle-rose .mat-button-toggle { color: #be123c; }
+
+.chart-toggle-rose .mat-button-toggle-checked {
+  color: #fff;
+  background: linear-gradient(135deg, #fb7185, #e11d48);
+}
+
+/* ── Dashboard: κατανομή engagement (mat-progress-bar) ── */
+.dist-bar.mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: #0284c7;
+  --mdc-linear-progress-track-color: #dbeafe;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* Το theme του Material παρακάμπτει τα παραπάνω variables — στοχεύουμε
+   απευθείας τα εσωτερικά elements (γαλάζιο μπάρα + ανοιχτό track). */
+.dist-bar .mdc-linear-progress__bar-inner { border-color: #0284c7 !important; }
+.dist-bar .mdc-linear-progress__buffer-bar { background-color: #dbeafe !important; }

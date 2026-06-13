@@ -98,25 +98,17 @@
 
 <!-- Products grid -->
 <section *ngIf="filteredProducts().length > 0" class="product-grid" aria-label="Λίστα προϊόντων">
-  <mat-card *ngFor="let p of filteredProducts()" class="product-card">
-    <a class="product-media" [routerLink]="['/product', myEncode(p.id)]">
-      <img [src]="p.image" alt="Εικόνα προϊόντος">
-    </a>
-
-    <mat-card-header>
-      <mat-card-title>{{ p.name }}</mat-card-title>
-    </mat-card-header>
-
-    <mat-card-content>
-      <p class="price">{{ p.price | number:'1.2-2' }} €</p>
-    </mat-card-content>
-
-    <mat-card-actions>
-      <button mat-flat-button color="primary" [routerLink]="['/product', myEncode(p.id)]">
-        Προβολή προϊόντος
-      </button>
-    </mat-card-actions>
-  </mat-card>
+  <a *ngFor="let p of filteredProducts()"
+     class="product-card"
+     [routerLink]="['/product', myEncode(p.id)]">
+    <div class="product-card-media">
+      <img [src]="p.image" [alt]="p.name">
+    </div>
+    <div class="product-card-body">
+      <p class="product-card-name">{{ p.name }}</p>
+      <p class="product-card-price">{{ p.price | number:'1.2-2' }} €</p>
+    </div>
+  </a>
 </section>
 
 <!-- Empty state (after filtering) -->

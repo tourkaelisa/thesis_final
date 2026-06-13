@@ -14,6 +14,9 @@ fronted/.angular/
 # Local database (regenerated at runtime)
 users.db
 
+# JWT signing secret (μυστικό — δεν μπαίνει στο git)
+.jwt_secret
+
 # OS
 Thumbs.db
 .DS_Store

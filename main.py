@@ -1,7 +1,7 @@
 """FastAPI backend: REST endpoints (αυθεντικοποίηση) + WebSocket dispatcher.
 
-Η επιχειρησιακή λογική βρίσκεται στα services (catalog, search, dashboard,
-wishlist, recommendations, semantic_search). Εδώ μένει μόνο η ρύθμιση της
+Η επιχειρησιακή λογική βρίσκεται στα services (catalog, search, filters,
+dashboard, wishlist, recommendations). Εδώ μένει μόνο η ρύθμιση της
 εφαρμογής, το startup και η δρομολόγηση των αιτημάτων του WebSocket.
 """
 import os
@@ -12,12 +12,13 @@ import rdflib
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
+import analytics
 import catalog
-import dashboard
 import db
+import filters
+import realtime
 import recommendations
 import search
-import semantic_search
 import wishlist
 from config import ADMIN_EMAIL, CATEGORY_CLASSES, DATABASE_PATH, RDF_FILE_PATH
 from graphdb import query_graphdb
@@ -27,9 +28,31 @@ from security import (
     create_token,
     hash_password,
     verify_password,
+    verify_token,
 )
 
 app = FastAPI()
+
+
+def authenticated_user_id(data) -> int | None:
+    """Επιστρέφει το user_id από το έγκυρο JWT του μηνύματος· αλλιώς None.
+
+    Η ταυτότητα προκύπτει ΑΠΟΚΛΕΙΣΤΙΚΑ από το υπογεγραμμένο token, ποτέ από
+    πεδίο που στέλνει ο client (π.χ. userId), ώστε να μην μπορεί να πλαστογραφηθεί.
+    """
+    payload = verify_token(data.get("token") or "")
+    if not payload:
+        return None
+    try:
+        return int(payload["sub"])
+    except (KeyError, ValueError, TypeError):
+        return None
+
+
+def is_admin(data) -> bool:
+    """True μόνο αν το token είναι έγκυρο και ο ρόλος είναι διαχειριστής (role = 2)."""
+    payload = verify_token(data.get("token") or "")
+    return bool(payload) and payload.get("role") == 2
 
 app.add_middleware(
     CORSMiddleware,
@@ -59,15 +82,9 @@ async def startup_event():
         print("RDF φορτώθηκε επιτυχώς.")
         recommendations.build_models(rdf_graph)
         print("Όλα τα μοντέλα είναι έτοιμα!")
-        db.seed_popularity(rdf_graph)
+        db.sync_popularity(rdf_graph)
     else:
         print(f"Σφάλμα: Το αρχείο {RDF_FILE_PATH} δεν βρέθηκε!")
-
-    # Semantic search: φόρτωση μαρκών από το GraphDB (για το NL parsing)
-    try:
-        semantic_search.load_brands(query_graphdb)
-    except Exception as e:
-        print(f"[semantic_search] Αποτυχία φόρτωσης μαρκών: {e}")
 
 
 # ============================================================ REST: Auth ====
@@ -76,9 +93,7 @@ async def register_user(user: UserRegistration):
     if not user.terms:
         raise HTTPException(status_code=400, detail="Terms must be accepted.")
 
-    normalized_email = user.email.strip().lower()
-    if "@" not in normalized_email or "." not in normalized_email.split("@")[-1]:
-        raise HTTPException(status_code=400, detail="Invalid email.")
+    normalized_email = user.email  # ήδη επικυρωμένο & κανονικοποιημένο από το schema
 
     try:
         user_id = db.create_user(
@@ -91,6 +106,9 @@ async def register_user(user: UserRegistration):
         )
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409, detail="Email already exists.")
+
+    # Live push: η νέα εγγραφή μεταβάλλει τους δείκτες χρηστών/εγγραφών στο dashboard.
+    await realtime.hub.broadcast_stats()
 
     return {
         "id": user_id,
@@ -120,14 +138,6 @@ async def login_user(credentials: UserLogin):
     }
 
 
-@app.post("/api/make-admin")
-async def make_admin(payload: UserLogin):
-    normalized_email = payload.email.strip().lower()
-    if db.set_admin_role(normalized_email) == 0:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return {"message": f"{normalized_email} is now admin (role=2)"}
-
-
 # ===================================================== WebSocket dispatcher ====
 @app.websocket("/ws/shop")
 async def websocket_endpoint(websocket: WebSocket):
@@ -136,6 +146,15 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
             action = data.get("action")
+
+            # 0. Έλεγχος token: αν το αίτημα κουβαλάει token που είναι παρόν αλλά
+            # ΑΚΥΡΟ (ληγμένο ή με ξεπερασμένη υπογραφή μετά από αλλαγή secret),
+            # ειδοποιούμε τον client να κάνει logout αντί να γυρνάμε σιωπηλά άδεια
+            # δεδομένα. Τα ανώνυμα αιτήματα (χωρίς token) δεν επηρεάζονται.
+            token = data.get("token")
+            if token and not verify_token(token):
+                await websocket.send_json({"type": "AUTH_INVALID"})
+                continue
 
             # 1. Προϊόντα κατηγορίας
             if action == "get_category":
@@ -151,28 +170,36 @@ async def websocket_endpoint(websocket: WebSocket):
             # 2. Λεπτομέρειες προϊόντος
             elif action == "get_product_details":
                 try:
-                    details = catalog.get_product_details(data.get("productId"), data.get("userId"))
+                    details = catalog.get_product_details(data.get("productId"), authenticated_user_id(data))
                     await websocket.send_json({"type": "PRODUCT_DETAILS", "product": details})
                 except Exception as e:
                     print(f"Σφάλμα στο get_product_details: {e}")
                     traceback.print_exc()
                     await websocket.send_json({"type": "PRODUCT_DETAILS", "product": {"specs": [], "name": "Σφάλμα Φόρτωσης"}})
 
-            # 3. Δημοφιλέστερα (slideshow)
+            # 3. Δημοφιλέστερα προϊόντα (top 8 της αρχικής)
             elif action == "get_popular_products":
-                slides = dashboard.get_popular_slides()
-                await websocket.send_json({"type": "POPULAR_PRODUCTS", "slides": slides})
+                products = analytics.get_popular_products()
+                await websocket.send_json({"type": "POPULAR_PRODUCTS", "products": products})
 
-            # 4. Στατιστικά dashboard (admin)
+            # 4. Στατιστικά dashboard (μόνο διαχειριστής)
             elif action == "get_dashboard_stats":
-                stats = dashboard.get_dashboard_stats()
-                await websocket.send_json({"type": "DASHBOARD_STATS", **stats})
+                if not is_admin(data):
+                    await websocket.send_json({"type": "ERROR", "message": "Δεν έχετε δικαίωμα πρόσβασης."})
+                else:
+                    # Καταχωρούμε τη σύνδεση ως admin-συνδρομητή ώστε να λαμβάνει
+                    # και τις live ενημερώσεις (push) όταν αλλάζουν τα δεδομένα.
+                    realtime.hub.register(websocket)
+                    stats = analytics.get_dashboard_stats()
+                    await websocket.send_json({"type": "DASHBOARD_STATS", **stats})
 
-            # 5. Wishlist / δημοτικότητα
+            # 5. Wishlist / δημοτικότητα (απαιτείται σύνδεση)
             elif action == "add_to_wishlist":
+                user_id = authenticated_user_id(data)
                 product_uri = data.get("productId")
-                user_id = data.get("userId")
-                if product_uri:
+                if not user_id:
+                    await websocket.send_json({"type": "ERROR", "message": "Απαιτείται σύνδεση."})
+                elif product_uri:
                     is_wishlisted, popularity = wishlist.toggle(user_id, product_uri)
                     await websocket.send_json({
                         "type": "WISHLIST_UPDATED",
@@ -180,9 +207,11 @@ async def websocket_endpoint(websocket: WebSocket):
                         "isWishlisted": is_wishlisted,
                         "popularity": popularity,
                     })
+                    # Live push: τα αγαπημένα άλλαξαν → φρέσκα στατιστικά στους admins.
+                    await realtime.hub.broadcast_stats()
 
             elif action == "get_wishlist":
-                user_id = data.get("userId")
+                user_id = authenticated_user_id(data)
                 if not user_id:
                     await websocket.send_json({"type": "WISHLIST_DATA", "products": []})
                 else:
@@ -194,11 +223,13 @@ async def websocket_endpoint(websocket: WebSocket):
                         await websocket.send_json({"type": "WISHLIST_DATA", "products": []})
 
             elif action == "remove_from_wishlist":
-                user_id = data.get("userId")
+                user_id = authenticated_user_id(data)
                 product_uri = data.get("productId")
                 if user_id and product_uri:
                     wishlist.remove(user_id, product_uri)
                     await websocket.send_json({"type": "WISHLIST_ITEM_REMOVED", "productId": product_uri})
+                    # Live push: η αφαίρεση μεταβάλλει δημοτικότητα/engagement/churn.
+                    await realtime.hub.broadcast_stats()
 
             # 6. Σημασιολογική αναζήτηση με φίλτρα
             elif action == "search_category":
@@ -207,7 +238,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     await websocket.send_json({"type": "SEARCH_RESULTS", "products": []})
                 else:
                     try:
-                        products = search.search_category(
+                        products = filters.search_category(
                             category,
                             data.get("filters", {}),
                             data.get("propRanges", {}),
@@ -233,11 +264,11 @@ async def websocket_endpoint(websocket: WebSocket):
             # 8. Εξατομικευμένες προτάσεις (βάσει wishlist)
             elif action == "get_personalized_recommendations":
                 try:
-                    user_id = data.get("userId")
+                    user_id = authenticated_user_id(data)
                     if not user_id:
                         await websocket.send_json({"type": "PERSONALIZED_RECOMMENDATIONS", "products": []})
                     else:
-                        wishlist_uris = db.get_wishlist_uri_set(user_id)
+                        wishlist_uris = db.get_wishlist_uris(user_id)
                         if not wishlist_uris:
                             await websocket.send_json({"type": "PERSONALIZED_RECOMMENDATIONS", "products": []})
                         else:
@@ -247,26 +278,25 @@ async def websocket_endpoint(websocket: WebSocket):
                     print(f"Σφάλμα στα personalized recommendations: {e}")
                     await websocket.send_json({"type": "PERSONALIZED_RECOMMENDATIONS", "products": []})
 
-            # 9. Σημασιολογική αναζήτηση φυσικής γλώσσας (NL → SPARQL)
-            elif action == "semantic_search":
+            # 9. Αναζήτηση λέξης-κλειδιού (όνομα + μάρκα) πάνω στο GraphDB
+            elif action == "keyword_search":
                 query = data.get("query", "")
                 try:
                     pop_map = db.get_popularity_map()
-                    result = semantic_search.search(
+                    products = search.search(
                         query, query_graphdb,
                         popularity_fn=lambda uri: pop_map.get(uri, 0),
                     )
                     await websocket.send_json({
-                        "type": "SEMANTIC_RESULTS",
+                        "type": "SEARCH_RESULTS",
                         "query": query,
-                        "interpreted": result["interpreted"],
-                        "products": result["products"],
+                        "products": products,
                     })
                 except Exception as e:
-                    print(f"Σφάλμα στο semantic search: {e}")
+                    print(f"Σφάλμα στο keyword search: {e}")
                     await websocket.send_json({
-                        "type": "SEMANTIC_RESULTS", "query": query,
-                        "interpreted": {}, "products": [], "error": str(e),
+                        "type": "SEARCH_RESULTS", "query": query,
+                        "products": [], "error": str(e),
                     })
 
     except WebSocketDisconnect:
@@ -274,3 +304,6 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Απροσδόκητο σφάλμα: {e}")
         traceback.print_exc()
+    finally:
+        # Όποια κι αν ήταν η αιτία εξόδου, αποσύρουμε τη σύνδεση από τους admins.
+        realtime.hub.unregister(websocket)

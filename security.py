@@ -1,12 +1,25 @@
 """Αυθεντικοποίηση: hashing κωδικών, JWT tokens και σχήματα (Pydantic) χρήστη."""
 import hashlib
+import re
 import secrets
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRE_HOURS
+
+# Πρακτικό regex εγκυρότητας email: local-part, @, domain με τουλάχιστον ένα
+# label και TLD ≥ 2 γραμμάτων. Απορρίπτει π.χ. "a@b", "a@b." , "a@.com".
+EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$")
+
+
+def normalize_email(value: str) -> str:
+    """Κανονικοποιεί (trim + πεζά) και επικυρώνει το email· αλλιώς ρίχνει ValueError."""
+    email = value.strip().lower()
+    if len(email) > 254 or not EMAIL_REGEX.match(email):
+        raise ValueError("Invalid email.")
+    return email
 
 
 class UserRegistration(BaseModel):
@@ -16,6 +29,22 @@ class UserRegistration(BaseModel):
     phone: str | None = None
     password: str = Field(min_length=8)
     terms: bool
+
+    @field_validator("email")
+    @classmethod
+    def _validate_email(cls, value: str) -> str:
+        return normalize_email(value)
+
+    @field_validator("phone")
+    @classmethod
+    def _validate_phone(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        phone = value.strip()
+        digits = re.sub(r"\D", "", phone)
+        if not re.fullmatch(r"[0-9+\s-]+", phone) or not (10 <= len(digits) <= 15):
+            raise ValueError("Invalid phone.")
+        return phone
 
 
 class UserLogin(BaseModel):

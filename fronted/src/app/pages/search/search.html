@@ -7,7 +7,7 @@
         name="searchTerm"
         type="search"
         [(ngModel)]="searchTerm"
-        placeholder="π.χ. laptop για gaming κάτω από 1500€"
+        placeholder="π.χ. iPhone, Samsung, Redmi"
         autocomplete="off"
       >
     </div>
@@ -16,24 +16,6 @@
       Αναζήτηση
     </button>
   </form>
-
-  <!-- Ερμηνεία ερωτήματος (τι κατάλαβε ο knowledge graph) -->
-  <div *ngIf="hasFilters(interpreted())" class="interpreted">
-    <span class="interpreted-label">Κατάλαβα:</span>
-    <span *ngIf="interpreted().category" class="chip chip-cat">{{ interpreted().category }}</span>
-    <span *ngFor="let b of interpreted().brands" class="chip chip-brand">{{ b }}</span>
-    <span *ngIf="interpreted().priceMin != null" class="chip">από {{ interpreted().priceMin }}€</span>
-    <span *ngIf="interpreted().priceMax != null" class="chip">έως {{ interpreted().priceMax }}€</span>
-    <span *ngIf="interpreted().definition" class="chip">{{ interpreted().definition }}</span>
-    <span *ngFor="let col of interpreted().colors" class="chip">{{ col }}</span>
-    <span *ngIf="interpreted().os" class="chip">{{ interpreted().os }}</span>
-    <span *ngIf="interpreted().cpu" class="chip">{{ interpreted().cpu }}</span>
-    <span *ngFor="let s of specChips(interpreted())" class="chip">{{ s.label }}: {{ s.text }}</span>
-    <span *ngIf="interpreted().releaseYear != null" class="chip">έτος {{ interpreted().releaseYear }}</span>
-    <span *ngIf="interpreted().releaseFrom != null" class="chip">από {{ interpreted().releaseFrom }} και νεότερα</span>
-    <span *ngIf="interpreted().sort" class="chip chip-sort">↕ {{ sortLabel(interpreted().sort) }}</span>
-    <span *ngIf="interpreted().relaxedSpecs" class="chip chip-warn">χαλαρωμένα specs</span>
-  </div>
 
   <!-- Loading -->
   <div *ngIf="loading()" class="loading-state">
@@ -49,30 +31,25 @@
     </p>
 
     <section *ngIf="results().length > 0" class="product-grid" aria-label="Αποτελέσματα αναζήτησης">
-      <mat-card *ngFor="let p of results()" class="product-card">
-        <a class="product-media" [routerLink]="['/product', myEncode(p.id)]">
+      <a *ngFor="let p of results()"
+         class="product-card"
+         [routerLink]="['/product', myEncode(p.id)]">
+        <div class="product-card-media">
           <img [src]="p.image" [alt]="p.name">
-        </a>
-        <mat-card-header>
-          <mat-card-title>{{ p.name }}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <span class="cat-tag">{{ p.categoryLabel }}</span>
-          <p class="price">{{ p.price | number:'1.2-2' }} €</p>
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-flat-button color="primary" [routerLink]="['/product', myEncode(p.id)]">
-            Προβολή προϊόντος
-          </button>
-        </mat-card-actions>
-      </mat-card>
+        </div>
+        <div class="product-card-body">
+          <span class="product-card-tag" *ngIf="p.categoryLabel">{{ p.categoryLabel }}</span>
+          <p class="product-card-name">{{ p.name }}</p>
+          <p class="product-card-price">{{ p.price | number:'1.2-2' }} €</p>
+        </div>
+      </a>
     </section>
 
     <!-- Empty state -->
     <div *ngIf="query() && results().length === 0" class="empty-state">
       <mat-icon class="empty-icon">search_off</mat-icon>
       <h2>Δεν βρέθηκαν προϊόντα</h2>
-      <p>Δοκίμασε διαφορετικές λέξεις ή πιο χαλαρά κριτήρια (π.χ. χωρίς συγκεκριμένη τιμή).</p>
+      <p>Δοκίμασε διαφορετικές λέξεις — π.χ. το όνομα ή τη μάρκα του προϊόντος.</p>
     </div>
   </ng-container>
 

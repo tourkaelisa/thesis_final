@@ -1,13 +1,27 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 import { AuthService, CurrentUser } from '../../services/auth';
+
+// Ίδιο regex με τον server (security.py): απαιτεί domain με TLD ≥ 2 γραμμάτων.
+// Απορρίπτει π.χ. "a@a" που το Validators.email δέχεται.
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
+
+// Προαιρετικό πεδίο: αν είναι κενό περνάει. Αλλιώς επιτρέπει μόνο ψηφία/+/κενά/παύλες
+// και απαιτεί 10-15 *ψηφία* (10 για ελληνικά, έως 15 για διεθνή με κωδικό χώρας).
+function phoneValidator(control: AbstractControl): ValidationErrors | null {
+  const value = (control.value ?? '').trim();
+  if (!value) return null;
+  if (!/^[0-9+\s-]+$/.test(value)) return { phone: true };
+  const digits = value.replace(/\D/g, '');
+  return digits.length >= 10 && digits.length <= 15 ? null : { phone: true };
+}
 
 @Component({
   selector: 'app-register',
@@ -37,8 +51,8 @@ export class Register {
   registerForm = this.fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
     lastName: ['', [Validators.required, Validators.minLength(2)]],
-    email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.pattern(/^[0-9+\s-]{10,16}$/)]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(EMAIL_PATTERN)]],
+    phone: ['', [phoneValidator]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: ['', [Validators.required]],
     terms: [false, [Validators.requiredTrue]]

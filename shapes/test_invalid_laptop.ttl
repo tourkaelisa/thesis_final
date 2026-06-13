@@ -1,0 +1,33 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix gr:     <http://purl.org/goodrelations/v1#> .
+@prefix pto:    <http://www.productontology.org/id/> .
+@prefix schema: <http://schema.org/> .
+@prefix eshop:  <http://www.myeshop.gr/resource/> .
+@prefix prop:   <http://www.myeshop.gr/property/> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# Δοκιμαστικό laptop: έγκυρο σε ΟΛΑ, εκτός από τη μνήμη RAM (λείπει επίτηδες).
+# Αναμενόμενο: το GraphDB να το ΑΠΟΡΡΙΨΕΙ με μήνυμα "Λείπει η μνήμη RAM του laptop."
+eshop:test_invalid_laptop a gr:ProductOrService, pto:Laptop ;
+    gr:name "Δοκιμαστικό Άκυρο Laptop (χωρίς RAM)"@el ;
+    schema:image <http://example.org/test.jpg> ;
+    schema:url <http://example.org/test-laptop> ;
+    schema:manufacturer eshop:Brand_Test ;
+    schema:price "999.0"^^xsd:float ;
+    schema:priceCurrency "EUR" ;
+    schema:operatingSystem "Windows"@en ;
+    prop:cpu_model "Core i5"@en ;
+    schema:color "Μαύρο"@el ;
+    schema:releaseDate "2024"^^xsd:gYear ;
+    gr:quantitativeProductOrServiceProperty
+        eshop:test_invalid_laptop_storage ,
+        eshop:test_invalid_laptop_screen_size ,
+        eshop:test_invalid_laptop_refresh_rate ,
+        eshop:test_invalid_laptop_resolution_width ,
+        eshop:test_invalid_laptop_resolution_height .
+
+eshop:test_invalid_laptop_storage           a gr:QuantitativeValue ; gr:hasValueFloat "512.0"^^xsd:float ; gr:hasUnitOfMeasurement "E34" .
+eshop:test_invalid_laptop_screen_size       a gr:QuantitativeValue ; gr:hasValueFloat "15.6"^^xsd:float ;  gr:hasUnitOfMeasurement "INH" .
+eshop:test_invalid_laptop_refresh_rate      a gr:QuantitativeValue ; gr:hasValueFloat "60.0"^^xsd:float ;  gr:hasUnitOfMeasurement "HTZ" .
+eshop:test_invalid_laptop_resolution_width  a gr:QuantitativeValue ; gr:hasValueFloat "1920.0"^^xsd:float ; gr:hasUnitOfMeasurement "E37" .
+eshop:test_invalid_laptop_resolution_height a gr:QuantitativeValue ; gr:hasValueFloat "1080.0"^^xsd:float ; gr:hasUnitOfMeasurement "E37" .

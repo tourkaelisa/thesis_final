@@ -20,55 +20,27 @@
     </form>
   </div>
 
-  <!-- Loading skeleton — εμφανίζεται μόνο στην πρώτη φόρτωση (χωρίς cache) -->
-  <section *ngIf="slides().length === 0" class="popular-section" aria-hidden="true">
-    <p class="eyebrow">Δημοφιλή αυτή την εβδομάδα</p>
-    <div class="slideshow-skeleton">
-      <div class="skeleton-image"></div>
-      <div class="skeleton-info">
-        <span class="skeleton-line skeleton-line-pill"></span>
-        <span class="skeleton-line skeleton-line-title"></span>
-        <span class="skeleton-line skeleton-line-price"></span>
-        <span class="skeleton-line skeleton-line-btn"></span>
+  <!-- Top 8 δημοφιλέστερα — εμφανίζεται σε όλους τους χρήστες -->
+  <section *ngIf="popularProducts().length > 0" class="popular-section" aria-label="Δημοφιλή προϊόντα">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Τα πιο δημοφιλή</p>
+        <h2>Δημοφιλέστερα προϊόντα</h2>
       </div>
     </div>
-  </section>
 
-  <section *ngIf="slides().length > 0" class="popular-section" aria-label="Δημοφιλή προϊόντα">
-    <p class="eyebrow">Δημοφιλή αυτή την εβδομάδα</p>
-
-    <div class="slideshow">
-      <button class="slide-arrow slide-prev" (click)="prevSlide()" aria-label="Προηγούμενο">&#8249;</button>
-
-      <div class="slides-track">
-        <div *ngFor="let slide of slides(); let i = index"
-             class="slide"
-             [class.slide-active]="i === activeSlide()">
-          <a class="slide-image" [routerLink]="['/product', myEncode(slide.id)]">
-            <img [src]="slide.image" [alt]="slide.name">
-          </a>
-          <div class="slide-info">
-            <span class="slide-category">{{ slide.category }}</span>
-            <h3 class="slide-name">{{ slide.name }}</h3>
-            <p class="slide-price">{{ slide.price | number:'1.2-2' }} €</p>
-            <a mat-flat-button color="primary" class="slide-btn"
-               [routerLink]="['/product', myEncode(slide.id)]">
-              Προβολή προϊόντος
-            </a>
-          </div>
+    <div class="product-grid">
+      <a *ngFor="let p of popularProducts()"
+         class="product-card"
+         [routerLink]="['/product', myEncode(p.id)]">
+        <div class="product-card-media">
+          <img [src]="p.image" [alt]="p.name">
         </div>
-      </div>
-
-      <button class="slide-arrow slide-next" (click)="nextSlide()" aria-label="Επόμενο">&#8250;</button>
-    </div>
-
-    <div class="slide-dots">
-      <button *ngFor="let slide of slides(); let i = index"
-              class="dot"
-              [class.dot-active]="i === activeSlide()"
-              (click)="goToSlide(i)"
-              [attr.aria-label]="slide.category">
-      </button>
+        <div class="product-card-body">
+          <p class="product-card-name">{{ p.name }}</p>
+          <p class="product-card-price">{{ p.price | number:'1.2-2' }} €</p>
+        </div>
+      </a>
     </div>
   </section>
 
@@ -84,16 +56,16 @@
       </a>
     </div>
 
-    <div class="personalized-grid">
+    <div class="product-grid">
       <a *ngFor="let p of personalizedProducts()"
-         class="pers-card"
+         class="product-card"
          [routerLink]="['/product', myEncode(p.id)]">
-        <div class="pers-card-img">
+        <div class="product-card-media">
           <img [src]="p.image" [alt]="p.name">
         </div>
-        <div class="pers-card-body">
-          <p class="pers-card-name">{{ p.name }}</p>
-          <p class="pers-card-price">{{ p.price | number:'1.2-2' }} €</p>
+        <div class="product-card-body">
+          <p class="product-card-name">{{ p.name }}</p>
+          <p class="product-card-price">{{ p.price | number:'1.2-2' }} €</p>
         </div>
       </a>
     </div>

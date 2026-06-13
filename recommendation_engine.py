@@ -3,7 +3,6 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 import warnings
-from collections import defaultdict
 
 warnings.filterwarnings('ignore')
 
@@ -500,46 +499,48 @@ def get_recommendations(target_uri, df_similarity, names_dict, top_n=3):
     return recommendations
 
 
-def get_personalized_recommendations(wishlist_uris, models):
+def get_personalized_recommendations(wishlist_uris, models, per_item=3):
     """Εξατομικευμένες προτάσεις από τη λίστα αγαπημένων ενός χρήστη (καθαρή λογική).
 
-    Για κάθε αγαπημένο βρίσκει όμοια προϊόντα ανά κατηγορία, αθροίζει τις
-    ομοιότητες (ώστε προϊόντα όμοια με πολλά αγαπημένα να ανεβαίνουν), δίνει
-    θέσεις ανά κατηγορία αναλογικά με τα αγαπημένα και τις εναλλάσσει (round-robin).
-    Επιστρέφει λίστα από URIs — χωρίς πρόσβαση σε βάση δεδομένων ή GraphDB.
+    Για ΚΑΘΕ αγαπημένο επιστρέφει τα top-`per_item` όμοιά του (προεπιλογή 3).
+    Δηλαδή N αγαπημένα -> έως N*per_item προτάσεις (π.χ. 2 αγαπημένα -> 6, 3 για
+    το καθένα). Οι προτάσεις εναλλάσσονται (round-robin) ώστε οι κατηγορίες να
+    μην εμφανίζονται σε μπλοκ. Αποκλείει ό,τι είναι ήδη στη wishlist και αποφεύγει
+    διπλότυπα. Επιστρέφει λίστα από URIs — χωρίς πρόσβαση σε βάση/GraphDB.
     """
-    wishlist_uris = set(wishlist_uris)
+    wishlist_set = set(wishlist_uris)
+    seen = set()
+    per_favorite = []  # μία λίστα προτάσεων για κάθε αγαπημένο
 
-    # Ομαδοποίηση των αγαπημένων ανά μοντέλο κατηγορίας
-    cat_model = {}
-    cat_items = defaultdict(list)
     for w_uri in wishlist_uris:
-        for cat_key, (sim, names) in models.items():
+        # Βρες το μοντέλο της κατηγορίας στην οποία ανήκει το αγαπημένο
+        model = None
+        for sim, names in models.values():
             if w_uri in sim.index:
-                cat_model[cat_key] = (sim, names)
-                cat_items[cat_key].append(w_uri)
+                model = (sim, names)
                 break
+        if model is None:
+            continue
+        sim, names = model
 
-    # Ανά κατηγορία: άθροισμα ομοιοτήτων, top N θέσεις = πλήθος αγαπημένων στην κατηγορία
-    cat_recs = {}
-    for cat_key, w_uris in cat_items.items():
-        sim, names = cat_model[cat_key]
-        cat_scores = {}
-        for w_uri in w_uris:
-            recs = get_recommendations(w_uri, sim, names, top_n=len(sim))
-            for r in recs:
-                rec_uri = r["URI"]
-                if rec_uri not in wishlist_uris:
-                    cat_scores[rec_uri] = cat_scores.get(rec_uri, 0) + r["Similarity"]
-        n_slots = len(w_uris)
-        cat_recs[cat_key] = sorted(cat_scores, key=lambda u: cat_scores[u], reverse=True)[:n_slots]
+        # Κράτα τα top-`per_item` όμοια που δεν είναι ήδη στη wishlist ούτε
+        # έχουν προταθεί από άλλο αγαπημένο.
+        recs = get_recommendations(w_uri, sim, names, top_n=len(sim))
+        picks = []
+        for r in recs:
+            rec_uri = r["URI"]
+            if rec_uri in wishlist_set or rec_uri in seen:
+                continue
+            picks.append(rec_uri)
+            seen.add(rec_uri)
+            if len(picks) >= per_item:
+                break
+        per_favorite.append(picks)
 
-    # Round-robin εναλλαγή κατηγοριών (περισσότερα αγαπημένα -> προτεραιότητα)
-    ordered_cats = sorted(cat_recs, key=lambda k: len(cat_items[k]), reverse=True)
-    top_uris = []
-    max_slots = max((len(v) for v in cat_recs.values()), default=0)
-    for i in range(max_slots):
-        for cat_key in ordered_cats:
-            if i < len(cat_recs[cat_key]):
-                top_uris.append(cat_recs[cat_key][i])
-    return top_uris
+    # Ανακάτεμα (round-robin): 1η πρόταση κάθε αγαπημένου, μετά 2η κάθε αγαπημένου...
+    recommended = []
+    for i in range(per_item):
+        for picks in per_favorite:
+            if i < len(picks):
+                recommended.append(picks[i])
+    return recommended

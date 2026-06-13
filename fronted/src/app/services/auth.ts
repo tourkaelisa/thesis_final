@@ -38,7 +38,7 @@ export class AuthService {
     if (!stored) return null;
     try {
       const user = JSON.parse(stored) as CurrentUser;
-      if (!user?.token) {
+      if (!user?.token || this.isTokenExpired(user.token)) {
         localStorage.removeItem(STORAGE_KEY);
         return null;
       }
@@ -46,6 +46,18 @@ export class AuthService {
     } catch {
       localStorage.removeItem(STORAGE_KEY);
       return null;
+    }
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = token.split('.')[1];
+      const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      if (typeof decoded.exp !== 'number') return true;
+      // exp είναι Unix timestamp σε δευτερόλεπτα
+      return Date.now() >= decoded.exp * 1000;
+    } catch {
+      return true;
     }
   }
 }

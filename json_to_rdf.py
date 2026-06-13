@@ -28,7 +28,7 @@ def create_rdf():
     g.bind("eshop", ESHOP)
     g.bind("prop", PROP)
 
-    input_dir = 'cleaned_data'
+    input_dir = 'data/cleaned_data'
     files = [f for f in os.listdir(input_dir) if f.endswith('.json')]
 
     for file_name in files:
@@ -119,7 +119,7 @@ def create_rdf():
             g.add((offer, GR.includes, product_uri))
             g.add((offer, GR.hasPriceSpecification, price_spec))
 
-    g.serialize(destination="master_eshop_fixed.ttl", format="turtle")
+    g.serialize(destination="data/master_eshop_fixed.ttl", format="turtle")
     print("\nΟλοκληρώθηκε")
 
 if __name__ == "__main__":

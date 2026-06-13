@@ -39,13 +39,13 @@ export class Wishlist implements OnInit {
       }
     });
 
-    this.streamService.getWishlist(user.id);
+    this.streamService.getWishlist();
   }
 
   remove(productId: string) {
     const user = this.auth.currentUser();
     if (user) {
-      this.streamService.removeFromWishlist(productId, user.id);
+      this.streamService.removeFromWishlist(productId);
     }
   }
 

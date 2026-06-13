@@ -16,11 +16,11 @@ def enrich_graph():
     print("Φόρτωση του υπάρχοντος Γράφου...")
     g = Graph()
     
-    if not os.path.exists("master_eshop_fixed.ttl"):
-        print("Το αρχείο master_eshop_fixed.ttl δεν βρέθηκε!")
+    if not os.path.exists("data/master_eshop_fixed.ttl"):
+        print("Το αρχείο data/master_eshop_fixed.ttl δεν βρέθηκε!")
         return
         
-    g.parse("master_eshop_fixed.ttl", format="turtle")
+    g.parse("data/master_eshop_fixed.ttl", format="turtle")
     
     # 1. Βρίσκουμε όλες τις μοναδικές μάρκες (αποθηκευμένες ως URIs: eshop:Brand_Apple)
     brands = {}  # brand_name -> brand_uri_node
@@ -120,7 +120,7 @@ def enrich_graph():
             time.sleep(0.5)
 
     print("\nΑποθήκευση του Εμπλουτισμένου Γράφου...")
-    g.serialize(destination="master_eshop_enriched.ttl", format="turtle")
+    g.serialize(destination="data/master_eshop_enriched.ttl", format="turtle")
     print("Ολοκλήρωση!")
 
 if __name__ == "__main__":

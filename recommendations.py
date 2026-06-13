@@ -25,13 +25,22 @@ def get_similar_products(product_uri):
             formatted = []
             for r in recs:
                 rec_uri = r["URI"]
-                img_query = f"""
+                detail_query = f"""
                 PREFIX schema1: <http://schema.org/>
-                SELECT ?img WHERE {{ <{rec_uri}> schema1:image ?img . }}
+                SELECT ?img ?price WHERE {{
+                    <{rec_uri}> schema1:image ?img ;
+                                schema1:price ?price .
+                }}
                 """
-                img_res = query_graphdb(img_query)
-                img_url = bval(img_res[0], "img") if img_res else ""
-                formatted.append({"id": rec_uri, "name": r["Name"], "image": img_url})
+                detail_res = query_graphdb(detail_query)
+                img_url = bval(detail_res[0], "img") if detail_res else ""
+                price_val = bval(detail_res[0], "price") if detail_res else None
+                formatted.append({
+                    "id": rec_uri,
+                    "name": r["Name"],
+                    "image": img_url,
+                    "price": float(price_val) if price_val else None,
+                })
             return formatted
     return None
 

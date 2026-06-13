@@ -16,7 +16,7 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./product.css']
 })
 export class Product implements OnInit {
-  private auth = inject(AuthService);
+  auth = inject(AuthService);
 
   product = signal<any>(null);
   recommendations = signal<any[]>([]);
@@ -58,11 +58,7 @@ export class Product implements OnInit {
 
       setTimeout(() => {
         this.streamService.requestRecommendations(productUri);
-        (this.streamService as any).socket$.next({
-          action: 'get_product_details',
-          productId: productUri,
-          userId: this.auth.currentUser()?.id
-        });
+        this.streamService.getProductDetails(productUri);
       }, 300);
     });
   }
@@ -70,7 +66,7 @@ export class Product implements OnInit {
   addToWishlist() {
     const p = this.product();
     if (p) {
-      this.streamService.addToWishlist(p.id ?? this.currentUri, this.auth.currentUser()?.id);
+      this.streamService.addToWishlist(p.id ?? this.currentUri);
     }
   }
 

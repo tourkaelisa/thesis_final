@@ -37,7 +37,7 @@
         <mat-error *ngIf="registerForm.controls.email.hasError('required')">
           Το email είναι υποχρεωτικό.
         </mat-error>
-        <mat-error *ngIf="registerForm.controls.email.hasError('email')">
+        <mat-error *ngIf="registerForm.controls.email.hasError('email') || registerForm.controls.email.hasError('pattern')">
           Συμπλήρωσε έγκυρο email.
         </mat-error>
       </mat-form-field>
@@ -45,8 +45,8 @@
       <mat-form-field appearance="outline">
         <mat-label>Τηλέφωνο</mat-label>
         <input matInput type="tel" formControlName="phone" autocomplete="tel">
-        <mat-error *ngIf="registerForm.controls.phone.hasError('pattern')">
-          Συμπλήρωσε έγκυρο τηλέφωνο.
+        <mat-error *ngIf="registerForm.controls.phone.hasError('phone')">
+          Συμπλήρωσε έγκυρο τηλέφωνο (10 ψηφία).
         </mat-error>
       </mat-form-field>
 

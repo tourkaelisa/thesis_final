@@ -39,23 +39,209 @@
       </div>
     </div>
 
+    <!-- Registrations Timeline -->
+    <div class="dash-card chart-card" *ngIf="chart() as ch">
+      <div class="chart-head">
+        <h2 class="card-title">
+          <mat-icon class="title-icon">trending_up</mat-icon>
+          Εγγραφές χρηστών
+        </h2>
+        <mat-button-toggle-group
+          class="chart-toggle"
+          [value]="chartMode()"
+          (change)="setMode($event.value)"
+          hideSingleSelectionIndicator="true">
+          <mat-button-toggle value="cumulative">
+            <mat-icon>show_chart</mat-icon> Σωρευτικά
+          </mat-button-toggle>
+          <mat-button-toggle value="daily">
+            <mat-icon>bar_chart</mat-icon> Ανά ημέρα
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <div class="chart-summary" *ngIf="regSummary() as rs">
+        <div class="sum-item">
+          <span class="sum-value">{{ rs.currentTotal }}</span>
+          <span class="sum-label">Σύνολο χρηστών</span>
+        </div>
+        <div class="sum-item">
+          <span class="sum-value sum-accent">+{{ rs.periodTotal }}</span>
+          <span class="sum-label">Τελευταίες {{ rs.days }} ημέρες</span>
+        </div>
+        <div class="sum-item">
+          <span class="sum-value">{{ rs.peakCount }}</span>
+          <span class="sum-label">Κορύφωση ({{ prettyDate(rs.peakDate) }})</span>
+        </div>
+      </div>
+
+      <div class="chart-wrap" (mouseleave)="hoverIndex.set(null)">
+        <svg [attr.viewBox]="'0 0 ' + geom.w + ' ' + geom.h" class="chart-svg">
+          <defs>
+            <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.38" />
+              <stop offset="100%" stop-color="#06b6d4" stop-opacity="0" />
+            </linearGradient>
+            <linearGradient id="lineStroke" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#0284c7" />
+              <stop offset="100%" stop-color="#14b8a6" />
+            </linearGradient>
+          </defs>
+
+          <!-- gridlines + ετικέτες Y -->
+          <g class="grid">
+            <line *ngFor="let gl of ch.gridlines"
+                  [attr.x1]="geom.mL" [attr.x2]="geom.w - geom.mR"
+                  [attr.y1]="gl.y" [attr.y2]="gl.y" />
+            <text *ngFor="let gl of ch.gridlines" class="axis-label"
+                  [attr.x]="geom.mL - 8" [attr.y]="gl.y + 4" text-anchor="end">
+              {{ gl.label }}
+            </text>
+          </g>
+
+          <!-- περιοχή + γραμμή -->
+          <path [attr.d]="ch.area" fill="url(#areaFill)" class="area-path" />
+          <path [attr.d]="ch.line" fill="none" stroke="url(#lineStroke)"
+                stroke-width="3" stroke-linecap="round" class="line-path" />
+
+          <!-- ετικέτες X -->
+          <text *ngFor="let xl of ch.xLabels" class="axis-label"
+                [attr.x]="xl.x" [attr.y]="geom.h - 12" text-anchor="middle">
+            {{ xl.label }}
+          </text>
+
+          <!-- κάθετος οδηγός hover -->
+          <line *ngIf="activePoint() as ap" class="hover-guide"
+                [attr.x1]="ap.x" [attr.x2]="ap.x"
+                [attr.y1]="geom.mT" [attr.y2]="ch.baseline" />
+
+          <!-- κουκκίδες -->
+          <circle *ngFor="let p of ch.points" class="dot"
+                  [attr.cx]="p.x" [attr.cy]="p.y" r="3" />
+          <circle *ngIf="activePoint() as ap" class="dot-active"
+                  [attr.cx]="ap.x" [attr.cy]="ap.y" r="6" />
+
+          <!-- αόρατες ζώνες ανίχνευσης hover -->
+          <rect *ngFor="let p of ch.points; let i = index" class="hit"
+                [attr.x]="p.x - ch.hitW / 2" [attr.y]="geom.mT"
+                [attr.width]="ch.hitW" [attr.height]="ch.innerH"
+                (mouseenter)="hoverIndex.set(i)" />
+        </svg>
+
+        <!-- HTML tooltip -->
+        <div *ngIf="activePoint() as ap" class="chart-tooltip"
+             [style.left.%]="pctX(ap.x)" [style.top.%]="pctY(ap.y)">
+          <span class="tip-date">{{ prettyDate(ap.date) }}</span>
+          <span class="tip-row" *ngIf="chartMode() === 'cumulative'">
+            <strong>{{ ap.cumulative }}</strong> σύνολο
+          </span>
+          <span class="tip-row">
+            <strong>+{{ ap.count }}</strong> {{ ap.count === 1 ? 'εγγραφή' : 'εγγραφές' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wishlist Activity -->
+    <div class="dash-card chart-card" *ngIf="wlChart() as wc">
+      <div class="chart-head">
+        <h2 class="card-title">
+          <mat-icon class="title-icon title-icon-rose">favorite</mat-icon>
+          Δραστηριότητα λίστας επιθυμιών
+        </h2>
+        <mat-button-toggle-group
+          class="chart-toggle chart-toggle-rose"
+          [value]="wlMode()"
+          (change)="setWlMode($event.value)"
+          hideSingleSelectionIndicator="true">
+          <mat-button-toggle value="day">
+            <mat-icon>today</mat-icon> Ανά ημέρα
+          </mat-button-toggle>
+          <mat-button-toggle value="week">
+            <mat-icon>date_range</mat-icon> Ανά εβδομάδα
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <div class="chart-summary" *ngIf="wlSummary() as ws">
+        <div class="sum-item">
+          <span class="sum-value">{{ ws.total }}</span>
+          <span class="sum-label">Σύνολο προσθηκών</span>
+        </div>
+        <div class="sum-item">
+          <span class="sum-value sum-rose">{{ ws.peakCount }}</span>
+          <span class="sum-label">Κορύφωση ({{ prettyDate(ws.peakDate) }})</span>
+        </div>
+        <div class="sum-item">
+          <span class="sum-value">{{ ws.avg | number:'1.1-1' }}</span>
+          <span class="sum-label">Μ.ό. ανά ημέρα</span>
+        </div>
+      </div>
+
+      <div class="chart-wrap" (mouseleave)="wlHoverIndex.set(null)">
+        <svg [attr.viewBox]="'0 0 ' + geomBar.w + ' ' + geomBar.h" class="chart-svg">
+          <defs>
+            <linearGradient id="barFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#fb7185" />
+              <stop offset="100%" stop-color="#e11d48" />
+            </linearGradient>
+          </defs>
+
+          <!-- gridlines + ετικέτες Y -->
+          <g class="grid">
+            <line *ngFor="let gl of wc.gridlines"
+                  [attr.x1]="geomBar.mL" [attr.x2]="geomBar.w - geomBar.mR"
+                  [attr.y1]="gl.y" [attr.y2]="gl.y" />
+            <text *ngFor="let gl of wc.gridlines" class="axis-label"
+                  [attr.x]="geomBar.mL - 8" [attr.y]="gl.y + 4" text-anchor="end">
+              {{ gl.label }}
+            </text>
+          </g>
+
+          <!-- μπάρες -->
+          <rect *ngFor="let b of wc.bars; let i = index" class="bar"
+                [class.bar-active]="wlHoverIndex() === i"
+                [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.w" [attr.height]="b.h"
+                rx="5" ry="5" />
+
+          <!-- ετικέτες X -->
+          <ng-container *ngFor="let b of wc.bars; let i = index">
+            <text *ngIf="i % wc.labelEvery === 0" class="axis-label"
+                  [attr.x]="b.cx" [attr.y]="geomBar.h - 12" text-anchor="middle">
+              {{ b.label }}
+            </text>
+          </ng-container>
+
+          <!-- αόρατες ζώνες ανίχνευσης hover (πιάνουν και τις μηδενικές μέρες) -->
+          <rect *ngFor="let b of wc.bars; let i = index" class="hit"
+                [attr.x]="b.cx - wc.hitW / 2" [attr.y]="wc.mT"
+                [attr.width]="wc.hitW" [attr.height]="wc.innerH"
+                (mouseenter)="wlHoverIndex.set(i)" />
+        </svg>
+
+        <!-- HTML tooltip -->
+        <div *ngIf="wlActive() as ab" class="chart-tooltip"
+             [style.left.%]="pctBarX(ab.cx)" [style.top.%]="pctBarY(ab.y)">
+          <span class="tip-date">{{ ab.tip }}</span>
+          <span class="tip-row">
+            <strong>{{ ab.count }}</strong> {{ ab.count === 1 ? 'προσθήκη' : 'προσθήκες' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
     <div class="dash-grid">
 
-      <!-- Top 10 Leaderboard -->
-      <div class="dash-card leaderboard-card">
+      <!-- Top 5 δημοφιλή προϊόντα -->
+      <div class="dash-card">
         <h2 class="card-title">
           <mat-icon class="title-icon">emoji_events</mat-icon>
-          Top 10 δημοφιλή προϊόντα
+          Top 5 δημοφιλή προϊόντα
         </h2>
         <div class="leaderboard">
-          <div *ngFor="let p of s.top_products; let i = index"
-               class="leader-row"
-               [class.podium-gold]="i === 0"
-               [class.podium-silver]="i === 1"
-               [class.podium-bronze]="i === 2">
+          <div *ngFor="let p of s.top_products; let i = index" class="leader-row">
             <span class="leader-medal">
-              <mat-icon *ngIf="i < 3" class="medal-icon" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">military_tech</mat-icon>
-              <span *ngIf="i >= 3" class="leader-num">#{{ i + 1 }}</span>
+              <span class="leader-num">#{{ i + 1 }}</span>
             </span>
             <span class="leader-name">{{ p.name }}</span>
             <div class="leader-bar-wrap">
@@ -66,49 +252,135 @@
         </div>
       </div>
 
-      <!-- Κατηγορίες tiles -->
-      <div class="dash-card">
-        <h2 class="card-title">
-          <mat-icon class="title-icon">bar_chart</mat-icon>
-          Κατηγορίες
-        </h2>
-        <div class="cat-grid">
-          <div *ngFor="let c of s.category_counts; let i = index"
-               class="cat-tile" [ngClass]="catClass(i)">
-            <mat-icon class="cat-tile-icon">{{ catIcon(i) }}</mat-icon>
-            <span class="cat-tile-count">{{ c.count }}</span>
-            <span class="cat-tile-name">{{ c.category }}</span>
-            <span class="cat-tile-price">ø {{ avgPriceFor(c.category) | number:'1.0-0' }} €</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Top 5 Brands -->
+      <!-- Top 5 Brands (ίδια δομή με το leaderboard για ομοιομορφία) -->
       <div class="dash-card">
         <h2 class="card-title">
           <mat-icon class="title-icon">star</mat-icon>
           Top 5 Brands
         </h2>
-        <div class="brands-list">
-          <div *ngFor="let b of s.top_brands; let i = index" class="brand-row">
-            <span class="brand-rank">#{{ i + 1 }}</span>
-            <span class="brand-avatar" [ngClass]="'brand-color-' + i">{{ b.brand.charAt(0) }}</span>
-            <div class="brand-info">
-              <span class="brand-name">{{ b.brand }}</span>
-              <div class="brand-bar-track">
-                <div class="brand-bar-fill" [ngClass]="'brand-bar-' + i"
-                     [style.width.%]="(b.count / s.top_brands[0].count) * 100"></div>
-              </div>
+        <div class="leaderboard">
+          <div *ngFor="let b of s.top_brands; let i = index" class="leader-row">
+            <span class="leader-medal">
+              <span class="leader-num">#{{ i + 1 }}</span>
+            </span>
+            <span class="leader-name">{{ b.brand }}</span>
+            <div class="leader-bar-wrap">
+              <div class="leader-bar" [style.width.%]="(b.count / s.top_brands[0].count) * 100"></div>
             </div>
-            <div class="brand-count">
-              {{ b.count }}
-              <small>προϊόντα</small>
-            </div>
+            <span class="leader-score">{{ b.count }}</span>
           </div>
         </div>
       </div>
 
     </div>
+
+    <!-- Insights: ενεργοί χρήστες + εγκαταλείψεις (δίπλα-δίπλα) -->
+    <div class="insight-grid">
+
+      <!-- Engagement / ενεργοί χρήστες -->
+      <div class="dash-card insight-card engage-card" *ngIf="engagement() as e">
+        <h2 class="card-title">
+          <span class="title-badge badge-blue"><mat-icon>groups</mat-icon></span>
+          Ενεργοί χρήστες
+        </h2>
+
+        <div class="engage-hero">
+          <div class="donut-wrap" *ngIf="donut() as d">
+            <svg viewBox="0 0 180 180" class="donut">
+              <defs>
+                <linearGradient id="engageArc" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#0284c7" />
+                  <stop offset="100%" stop-color="#06b6d4" />
+                </linearGradient>
+              </defs>
+              <circle class="donut-bg"
+                      [attr.cx]="d.cx" [attr.cy]="d.cy" [attr.r]="d.r" />
+              <circle class="donut-fg"
+                      [attr.cx]="d.cx" [attr.cy]="d.cy" [attr.r]="d.r"
+                      [attr.stroke-dasharray]="d.c"
+                      [attr.stroke-dashoffset]="d.offset"
+                      [style.--circ]="d.c"
+                      [attr.transform]="'rotate(-90 ' + d.cx + ' ' + d.cy + ')'" />
+            </svg>
+            <div class="donut-center">
+              <span class="donut-pct">{{ e.engagement_rate }}%</span>
+            </div>
+          </div>
+
+          <div class="engage-legend">
+            <div class="leg-item">
+              <span class="leg-dot leg-active"></span>
+              <strong>{{ e.active_users }}</strong> ενεργοί
+            </div>
+            <div class="leg-item">
+              <span class="leg-dot leg-inactive"></span>
+              <strong>{{ e.inactive_users }}</strong> ανενεργοί
+            </div>
+            <p class="engage-note">
+              Μ.ό. <strong>{{ e.avg_items }}</strong> αγαπημένα/χρήστη
+            </p>
+          </div>
+        </div>
+
+        <div class="dist-block" *ngIf="e.active_users > 0">
+          <span class="dist-title">Κατανομή μεγέθους λίστας</span>
+          <div class="dist-row" *ngFor="let r of distRows()">
+            <span class="dist-label">{{ r.label }}</span>
+            <mat-progress-bar class="dist-bar" mode="determinate" [value]="r.pct" />
+            <span class="dist-count">{{ r.count }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Προϊόντα που εγκαταλείπονται -->
+      <div class="dash-card insight-card abandon-card">
+        <div class="chart-head">
+          <h2 class="card-title">
+            <span class="title-badge badge-slate"><mat-icon>trending_down</mat-icon></span>
+            Εγκαταλείπονται
+          </h2>
+          <div class="abandon-legend">
+            <span class="leg-item"><span class="leg-dot leg-retained"></span> Μένουν</span>
+            <span class="leg-item"><span class="leg-dot leg-lost"></span> Αφαιρέθηκαν</span>
+          </div>
+        </div>
+
+        <div class="abandon-list" *ngIf="abandoned().length; else noAbandon">
+          <div class="abandon-row" *ngFor="let p of abandoned()">
+            <span class="abandon-name">{{ p.name }}</span>
+            <div class="abandon-bar-track">
+              <div class="abandon-seg retained"
+                   [style.width.%]="(p.current / maxAbandonAdditions()) * 100"></div>
+              <div class="abandon-seg lost"
+                   [style.width.%]="(p.abandoned / maxAbandonAdditions()) * 100"></div>
+            </div>
+            <span class="abandon-count">−{{ p.abandoned }}</span>
+            <span class="abandon-rate">{{ p.rate }}%</span>
+
+            <div class="abandon-tip">
+              <span class="atip-row">
+                <span class="leg-dot leg-retained"></span> Μένουν: <strong>{{ p.current }}</strong>
+              </span>
+              <span class="atip-row">
+                <span class="leg-dot leg-lost"></span> Αφαιρέθηκαν: <strong>{{ p.abandoned }}</strong>
+              </span>
+              <span class="atip-row atip-total">
+                Σύνολο προσθηκών: <strong>{{ p.additions }}</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noAbandon>
+          <div class="abandon-empty">
+            <mat-icon>verified</mat-icon>
+            <p>Κανένα προϊόν δεν έχει εγκαταλειφθεί ακόμα.</p>
+          </div>
+        </ng-template>
+      </div>
+
+    </div>
+
   </ng-container>
 
 </section>

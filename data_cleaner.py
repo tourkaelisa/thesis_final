@@ -2,8 +2,8 @@ import json
 import os
 import re
 
-INPUT_DIR = 'raw_data'
-OUTPUT_DIR = 'cleaned_data'
+INPUT_DIR = 'data/raw_data'
+OUTPUT_DIR = 'data/cleaned_data'
 
 MAPPINGS = {
     "screen_size": ["Οθόνη - Διαγώνιος", "Οθόνη - Μέγεθος", "Εικόνα - Διαγώνιος", "Οθόνη - Μέγεθος Οθόνης", "Τεχνικά Χαρακτηριστικά - Μέγεθος Οθόνης", "Βασικά Χαρακτηριστικά - Μέγεθος Οθόνης"],

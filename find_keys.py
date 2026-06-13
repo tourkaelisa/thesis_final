@@ -1,7 +1,7 @@
 import json
 import os
 
-input_dir = 'raw_data'
+input_dir = 'data/raw_data'
 
 def find_camera_keys():
     files = [f for f in os.listdir(input_dir) if f.endswith('.json')]

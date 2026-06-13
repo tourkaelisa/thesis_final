@@ -7,8 +7,8 @@ import json
 import random
 
 # --- ΡΥΘΜΙΣΕΙΣ ---
-INPUT_FILE = 'urls.txt'
-OUTPUT_FILE = 'real_products_data.json'
+INPUT_FILE = 'data/urls.txt'
+OUTPUT_FILE = 'data/real_products_data.json'
 
 print(f"Διαβάζω τα links από το {INPUT_FILE}...")
 

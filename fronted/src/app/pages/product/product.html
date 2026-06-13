@@ -10,12 +10,11 @@
       <p class="price">{{ product().price | number:'1.2-2' }} €</p>
 
       <div class="summary-actions">
-        <button mat-flat-button color="primary">Προσθήκη στο καλάθι</button>
-        <button mat-stroked-button color="primary"
+        <button *ngIf="auth.currentUser()" mat-stroked-button color="primary"
                 [class.wishlisted]="wishlisted()"
-                [disabled]="wishlisted()"
                 (click)="addToWishlist()">
-          {{ wishlisted() ? '♥ Στα αγαπημένα' : '♡ Αγαπημένα' }}
+          <mat-icon>{{ wishlisted() ? 'favorite' : 'favorite_border' }}</mat-icon>
+          {{ wishlisted() ? 'Στα αγαπημένα' : 'Αγαπημένα' }}
         </button>
       </div>
 
@@ -59,18 +58,18 @@
       <h2>Παρόμοια προϊόντα</h2>
     </div>
 
-    <div class="rec-grid">
-      <mat-card *ngFor="let rec of recommendations()" class="rec-card">
-        <a class="rec-media" [routerLink]="['/product', myEncode(rec.id)]">
-          <img [src]="rec.image" alt="{{ rec.name }}">
-        </a>
-
-        <mat-card-title>{{ rec.name }}</mat-card-title>
-
-        <button mat-flat-button color="primary" [routerLink]="['/product', myEncode(rec.id)]">
-          Προβολή
-        </button>
-      </mat-card>
+    <div class="product-grid">
+      <a *ngFor="let rec of recommendations()"
+         class="product-card"
+         [routerLink]="['/product', myEncode(rec.id)]">
+        <div class="product-card-media">
+          <img [src]="rec.image" [alt]="rec.name">
+        </div>
+        <div class="product-card-body">
+          <p class="product-card-name">{{ rec.name }}</p>
+          <p class="product-card-price" *ngIf="rec.price != null">{{ rec.price | number:'1.2-2' }} €</p>
+        </div>
+      </a>
     </div>
   </section>
 </section>
