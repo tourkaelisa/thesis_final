@@ -1,6 +1,5 @@
 <section class="home-page">
   <div class="search-hero">
-    <p class="eyebrow">Semantic product finder</p>
     <h1>Βρες γρήγορα το προϊόν που ψάχνεις</h1>
 
     <form class="search-bar" (ngSubmit)="searchProducts()">
@@ -24,7 +23,6 @@
   <section *ngIf="popularProducts().length > 0" class="popular-section" aria-label="Δημοφιλή προϊόντα">
     <div class="section-header">
       <div>
-        <p class="eyebrow">Τα πιο δημοφιλή</p>
         <h2>Δημοφιλέστερα προϊόντα</h2>
       </div>
     </div>
@@ -50,10 +48,6 @@
       <div>
         <h2>Προτάσεις ειδικά για εσάς</h2>
       </div>
-      <a class="see-all-link" routerLink="/wishlist">
-        <mat-icon>favorite</mat-icon>
-        Τα αγαπημένα μου
-      </a>
     </div>
 
     <div class="product-grid">
@@ -69,12 +63,5 @@
         </div>
       </a>
     </div>
-  </section>
-
-  <section class="category-strip" aria-label="Δημοφιλείς κατηγορίες">
-    <a *ngFor="let category of categories" class="category-tile" [routerLink]="category.route">
-      <span>{{ category.name }}</span>
-      <small>{{ category.description }}</small>
-    </a>
   </section>
 </section>

@@ -1,13 +1,11 @@
-"""Service αναζήτησης με φίλτρα (faceted search) πάνω στο GraphDB.
+"""Service αναζήτησης με φίλτρα πάνω στο GraphDB.
 
-Μεταφράζει τα φίλτρα του χρήστη (κατηγορικά, ποσοτικά εύρη, εύρος τιμής) σε
-δυναμικά κατασκευασμένο SPARQL ερώτημα.
+Μεταφράζει τα φίλτρα του χρήστη  σε δυναμικά κατασκευασμένο SPARQL ερώτημα.
 """
-import db
 from config import CATEGORY_CLASSES
 from graphdb import query_graphdb
 
-# Αντιστοίχιση κατηγορικού πεδίου -> SPARQL predicate
+# Αντιστοίχιση κατηγορικού πεδίου με SPARQL predicate
 FIELD_PREDICATE = {
     "os":          "schema1:operatingSystem",
     "color":       "schema1:color",
@@ -22,12 +20,17 @@ def search_category(category, filters, prop_ranges, price_min, price_max) -> lis
     rdf_class = CATEGORY_CLASSES[category]
     filter_clauses = [f"FILTER(?price >= {price_min} && ?price <= {price_max})"]
     quant_joins = []
+    cat_joins = []
 
     for key, values in filters.items():
         if not values:
             continue
         if key == "brand":
             vals = ", ".join(f'"{v}"' for v in values)
+            cat_joins.append(
+                '?uri schema1:manufacturer ?bURI .\n'
+                '        BIND(REPLACE(STR(?bURI), "^.*Brand_", "") AS ?brand)'
+            )
             filter_clauses.append(f"FILTER(?brand IN ({vals}))")
         elif key == "resolution":
             # "1920×1080" → ζεύγος ποσοτικών φίλτρων width + height
@@ -53,6 +56,7 @@ def search_category(category, filters, prop_ranges, price_min, price_max) -> lis
                 )
         elif key in FIELD_PREDICATE:
             vals = ", ".join(f'"{v}"' for v in values)
+            cat_joins.append(f"?uri {FIELD_PREDICATE[key]} ?{key} .")
             filter_clauses.append(f"FILTER(STR(?{key}) IN ({vals}))")
 
     # Ποσοτικά εύρη (RAM, storage, screen_size, κ.λπ.)
@@ -73,19 +77,13 @@ def search_category(category, filters, prop_ranges, price_min, price_max) -> lis
     PREFIX prop:   <http://www.myeshop.gr/property/>
     PREFIX pto:    <http://www.productontology.org/id/>
 
-    SELECT DISTINCT ?uri ?name ?price ?image ?brand
+    SELECT DISTINCT ?uri ?name ?price ?image
     WHERE {{
         ?uri a {rdf_class} ;
              gr:name ?name ;
              schema1:price ?price ;
              schema1:image ?image .
-        OPTIONAL {{ ?uri schema1:manufacturer ?bURI .
-                    BIND(REPLACE(STR(?bURI), "^.*Brand_", "") AS ?brand) }}
-        OPTIONAL {{ ?uri schema1:operatingSystem ?os . }}
-        OPTIONAL {{ ?uri schema1:color ?color . }}
-        OPTIONAL {{ ?uri prop:definition ?definition . }}
-        OPTIONAL {{ ?uri prop:cpu_model ?cpu . }}
-        OPTIONAL {{ ?uri schema1:releaseDate ?releaseDate . }}
+        {chr(10).join(cat_joins)}
         {chr(10).join(quant_joins)}
         {chr(10).join(filter_clauses)}
     }}
@@ -103,8 +101,5 @@ def search_category(category, filters, prop_ranges, price_min, price_max) -> lis
             "name":  b["name"]["value"],
             "price": float(b["price"]["value"]),
             "image": b.get("image", {}).get("value", ""),
-            "brand": b.get("brand", {}).get("value", ""),
-            "props": {},
         })
-    db.attach_popularity(products)
     return products

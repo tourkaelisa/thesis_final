@@ -23,9 +23,9 @@
           </button>
 
           <a class="brand" routerLink="/">
-            <span class="brand-mark">SS</span>
+            <span class="brand-mark">TM</span>
             <span class="brand-text">
-              <strong>Semantic Shop</strong>
+              <strong>TechMatch</strong>
               <small>Smart discovery</small>
             </span>
           </a>
@@ -34,13 +34,12 @@
         <nav class="top-nav" #topNav>
           <a class="nav-link" routerLink="/" routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">Αρχική</a>
-          <a *ngIf="currentUser()?.role === 2" class="nav-link nav-link-admin"
-             routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-          <a *ngIf="currentUser()" class="nav-link nav-link-wishlist"
+          <a *ngIf="currentUser()" class="nav-link"
              routerLink="/wishlist" routerLinkActive="active">
-            <mat-icon>favorite</mat-icon>
             Αγαπημένα
           </a>
+          <a *ngIf="currentUser()?.role === 2" class="nav-link nav-link-admin"
+             routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
           <span class="nav-indicator"
                 [style.left.px]="indicatorLeft()"
                 [style.width.px]="indicatorWidth()"></span>

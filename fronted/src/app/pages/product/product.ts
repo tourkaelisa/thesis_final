@@ -20,7 +20,6 @@ export class Product implements OnInit {
 
   product = signal<any>(null);
   recommendations = signal<any[]>([]);
-  popularity = signal<number>(0);
   wishlisted = signal<boolean>(false);
 
   private currentUri = '';
@@ -36,14 +35,10 @@ export class Product implements OnInit {
         this.recommendations.set(message.products);
       } else if (message.type === 'PRODUCT_DETAILS') {
         this.product.set(message.product);
-        if (message.product?.popularity !== undefined) {
-          this.popularity.set(message.product.popularity);
-        }
         if (message.product?.isWishlisted !== undefined) {
           this.wishlisted.set(message.product.isWishlisted);
         }
       } else if (message.type === 'WISHLIST_UPDATED') {
-        this.popularity.set(message.popularity);
         this.wishlisted.set(message.isWishlisted);
       }
     });

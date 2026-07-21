@@ -3,7 +3,6 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
@@ -17,7 +16,6 @@ import { AuthService, CurrentUser } from '../../services/auth';
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,
-    MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule
   ],
@@ -36,8 +34,7 @@ export class Login {
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-    rememberMe: [true]
+    password: ['', [Validators.required, Validators.minLength(8)]]
   });
 
   onSubmit(): void {
@@ -49,10 +46,10 @@ export class Login {
       return;
     }
 
-    const { rememberMe, ...payload } = this.loginForm.getRawValue();
+    const payload = this.loginForm.getRawValue();
     this.isSubmitting.set(true);
 
-    this.http.post<CurrentUser>('http://localhost:8000/api/login', payload).subscribe({
+    this.http.post<CurrentUser>('/api/login', payload).subscribe({
       next: (user) => {
         this.auth.setUser(user);
         this.isSubmitting.set(false);

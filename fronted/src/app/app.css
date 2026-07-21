@@ -166,11 +166,6 @@
 .nav-link:hover { color: #0369a1; background: transparent; }
 .nav-link.active { color: #0369a1; }
 
-.nav-link-admin { color: #0891b2; }
-.nav-link-admin:hover, .nav-link-admin.active { color: #0369a1; }
-.nav-link-wishlist { display: flex; align-items: center; gap: 5px; color: #be185d; }
-.nav-link-wishlist:hover, .nav-link-wishlist.active { color: #be185d; }
-.nav-link-wishlist mat-icon { font-size: 18px; width: 18px; height: 18px; }
 
 /* Φωτεινό underline που γλιστράει στον ενεργό σύνδεσμο */
 .nav-indicator {

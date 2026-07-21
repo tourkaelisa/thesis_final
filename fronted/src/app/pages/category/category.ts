@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,15 @@ import { DataStreamService } from '../../services/data-stream';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+
+// Ετικέτες εμφάνισης ανά route κατηγορίας (το route key μένει ως έχει για το backend).
+const CATEGORY_LABELS: { [key: string]: string } = {
+  laptops: 'Laptops',
+  mobiles: 'Κινητά',
+  tablets: 'Tablets',
+  tvs: 'Τηλεοράσεις',
+  smartwatches: 'Smartwatches',
+};
 
 interface QuantGroup {
   key: string; label: string;
@@ -24,6 +33,7 @@ export class Category implements OnInit {
   products = signal<any[]>([]);
   filteredProducts = signal<any[]>([]);
   categoryName = signal('');
+  categoryLabel = computed(() => CATEGORY_LABELS[this.categoryName()] ?? this.categoryName());
 
   filtersOpen = false;
   searching = signal(false);
@@ -58,6 +68,9 @@ export class Category implements OnInit {
 
   private readonly EXCLUDED_PROPS = new Set(['resolution_width', 'resolution_height']);
 
+  // Κατηγορίες όπου το βάρος μετριέται σε γραμμάρια (αλλιώς σε κιλά).
+  private readonly WEIGHT_GRAMS_CATEGORIES = new Set(['mobiles', 'tablets', 'smartwatches']);
+
   constructor(
     private route: ActivatedRoute,
     private streamService: DataStreamService
@@ -85,6 +98,16 @@ export class Category implements OnInit {
       this.filtersOpen = false;
       this.streamService.requestCategory(params['name']);
     });
+  }
+
+  // Ετικέτα ποσοτικού φίλτρου· το βάρος αλλάζει μονάδα ανάλογα με την κατηγορία.
+  private quantLabel(key: string): string {
+    if (key === 'weight') {
+      return this.WEIGHT_GRAMS_CATEGORIES.has(this.categoryName())
+        ? 'Βάρος (gr)'
+        : 'Βάρος (kg)';
+    }
+    return this.FIELD_LABELS[key] ?? key.replace(/_/g, ' ');
   }
 
   private buildFilters() {
@@ -127,7 +150,7 @@ export class Category implements OnInit {
       if (absMin === absMax) continue;
       quantGroups.push({
         key, absMin, absMax, activeMin: absMin, activeMax: absMax,
-        label: this.FIELD_LABELS[key] ?? key.replace(/_/g, ' ')
+        label: this.quantLabel(key)
       });
     }
     this.quantGroups.set(quantGroups);

@@ -40,7 +40,7 @@
     </div>
 
     <!-- Registrations Timeline -->
-    <div class="dash-card chart-card" *ngIf="chart() as ch">
+    <div class="dash-card chart-card" *ngIf="regSummary() as rs">
       <div class="chart-head">
         <h2 class="card-title">
           <mat-icon class="title-icon">trending_up</mat-icon>
@@ -60,7 +60,7 @@
         </mat-button-toggle-group>
       </div>
 
-      <div class="chart-summary" *ngIf="regSummary() as rs">
+      <div class="chart-summary">
         <div class="sum-item">
           <span class="sum-value">{{ rs.currentTotal }}</span>
           <span class="sum-label">Σύνολο χρηστών</span>
@@ -75,75 +75,13 @@
         </div>
       </div>
 
-      <div class="chart-wrap" (mouseleave)="hoverIndex.set(null)">
-        <svg [attr.viewBox]="'0 0 ' + geom.w + ' ' + geom.h" class="chart-svg">
-          <defs>
-            <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.38" />
-              <stop offset="100%" stop-color="#06b6d4" stop-opacity="0" />
-            </linearGradient>
-            <linearGradient id="lineStroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="#0284c7" />
-              <stop offset="100%" stop-color="#14b8a6" />
-            </linearGradient>
-          </defs>
-
-          <!-- gridlines + ετικέτες Y -->
-          <g class="grid">
-            <line *ngFor="let gl of ch.gridlines"
-                  [attr.x1]="geom.mL" [attr.x2]="geom.w - geom.mR"
-                  [attr.y1]="gl.y" [attr.y2]="gl.y" />
-            <text *ngFor="let gl of ch.gridlines" class="axis-label"
-                  [attr.x]="geom.mL - 8" [attr.y]="gl.y + 4" text-anchor="end">
-              {{ gl.label }}
-            </text>
-          </g>
-
-          <!-- περιοχή + γραμμή -->
-          <path [attr.d]="ch.area" fill="url(#areaFill)" class="area-path" />
-          <path [attr.d]="ch.line" fill="none" stroke="url(#lineStroke)"
-                stroke-width="3" stroke-linecap="round" class="line-path" />
-
-          <!-- ετικέτες X -->
-          <text *ngFor="let xl of ch.xLabels" class="axis-label"
-                [attr.x]="xl.x" [attr.y]="geom.h - 12" text-anchor="middle">
-            {{ xl.label }}
-          </text>
-
-          <!-- κάθετος οδηγός hover -->
-          <line *ngIf="activePoint() as ap" class="hover-guide"
-                [attr.x1]="ap.x" [attr.x2]="ap.x"
-                [attr.y1]="geom.mT" [attr.y2]="ch.baseline" />
-
-          <!-- κουκκίδες -->
-          <circle *ngFor="let p of ch.points" class="dot"
-                  [attr.cx]="p.x" [attr.cy]="p.y" r="3" />
-          <circle *ngIf="activePoint() as ap" class="dot-active"
-                  [attr.cx]="ap.x" [attr.cy]="ap.y" r="6" />
-
-          <!-- αόρατες ζώνες ανίχνευσης hover -->
-          <rect *ngFor="let p of ch.points; let i = index" class="hit"
-                [attr.x]="p.x - ch.hitW / 2" [attr.y]="geom.mT"
-                [attr.width]="ch.hitW" [attr.height]="ch.innerH"
-                (mouseenter)="hoverIndex.set(i)" />
-        </svg>
-
-        <!-- HTML tooltip -->
-        <div *ngIf="activePoint() as ap" class="chart-tooltip"
-             [style.left.%]="pctX(ap.x)" [style.top.%]="pctY(ap.y)">
-          <span class="tip-date">{{ prettyDate(ap.date) }}</span>
-          <span class="tip-row" *ngIf="chartMode() === 'cumulative'">
-            <strong>{{ ap.cumulative }}</strong> σύνολο
-          </span>
-          <span class="tip-row">
-            <strong>+{{ ap.count }}</strong> {{ ap.count === 1 ? 'εγγραφή' : 'εγγραφές' }}
-          </span>
-        </div>
+      <div class="chart-canvas-wrap">
+        <canvas #regCanvas></canvas>
       </div>
     </div>
 
     <!-- Wishlist Activity -->
-    <div class="dash-card chart-card" *ngIf="wlChart() as wc">
+    <div class="dash-card chart-card" *ngIf="wlSummary() as ws">
       <div class="chart-head">
         <h2 class="card-title">
           <mat-icon class="title-icon title-icon-rose">favorite</mat-icon>
@@ -163,7 +101,7 @@
         </mat-button-toggle-group>
       </div>
 
-      <div class="chart-summary" *ngIf="wlSummary() as ws">
+      <div class="chart-summary">
         <div class="sum-item">
           <span class="sum-value">{{ ws.total }}</span>
           <span class="sum-label">Σύνολο προσθηκών</span>
@@ -178,55 +116,8 @@
         </div>
       </div>
 
-      <div class="chart-wrap" (mouseleave)="wlHoverIndex.set(null)">
-        <svg [attr.viewBox]="'0 0 ' + geomBar.w + ' ' + geomBar.h" class="chart-svg">
-          <defs>
-            <linearGradient id="barFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#fb7185" />
-              <stop offset="100%" stop-color="#e11d48" />
-            </linearGradient>
-          </defs>
-
-          <!-- gridlines + ετικέτες Y -->
-          <g class="grid">
-            <line *ngFor="let gl of wc.gridlines"
-                  [attr.x1]="geomBar.mL" [attr.x2]="geomBar.w - geomBar.mR"
-                  [attr.y1]="gl.y" [attr.y2]="gl.y" />
-            <text *ngFor="let gl of wc.gridlines" class="axis-label"
-                  [attr.x]="geomBar.mL - 8" [attr.y]="gl.y + 4" text-anchor="end">
-              {{ gl.label }}
-            </text>
-          </g>
-
-          <!-- μπάρες -->
-          <rect *ngFor="let b of wc.bars; let i = index" class="bar"
-                [class.bar-active]="wlHoverIndex() === i"
-                [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.w" [attr.height]="b.h"
-                rx="5" ry="5" />
-
-          <!-- ετικέτες X -->
-          <ng-container *ngFor="let b of wc.bars; let i = index">
-            <text *ngIf="i % wc.labelEvery === 0" class="axis-label"
-                  [attr.x]="b.cx" [attr.y]="geomBar.h - 12" text-anchor="middle">
-              {{ b.label }}
-            </text>
-          </ng-container>
-
-          <!-- αόρατες ζώνες ανίχνευσης hover (πιάνουν και τις μηδενικές μέρες) -->
-          <rect *ngFor="let b of wc.bars; let i = index" class="hit"
-                [attr.x]="b.cx - wc.hitW / 2" [attr.y]="wc.mT"
-                [attr.width]="wc.hitW" [attr.height]="wc.innerH"
-                (mouseenter)="wlHoverIndex.set(i)" />
-        </svg>
-
-        <!-- HTML tooltip -->
-        <div *ngIf="wlActive() as ab" class="chart-tooltip"
-             [style.left.%]="pctBarX(ab.cx)" [style.top.%]="pctBarY(ab.y)">
-          <span class="tip-date">{{ ab.tip }}</span>
-          <span class="tip-row">
-            <strong>{{ ab.count }}</strong> {{ ab.count === 1 ? 'προσθήκη' : 'προσθήκες' }}
-          </span>
-        </div>
+      <div class="chart-canvas-wrap">
+        <canvas #wlCanvas></canvas>
       </div>
     </div>
 
@@ -285,23 +176,8 @@
         </h2>
 
         <div class="engage-hero">
-          <div class="donut-wrap" *ngIf="donut() as d">
-            <svg viewBox="0 0 180 180" class="donut">
-              <defs>
-                <linearGradient id="engageArc" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="#0284c7" />
-                  <stop offset="100%" stop-color="#06b6d4" />
-                </linearGradient>
-              </defs>
-              <circle class="donut-bg"
-                      [attr.cx]="d.cx" [attr.cy]="d.cy" [attr.r]="d.r" />
-              <circle class="donut-fg"
-                      [attr.cx]="d.cx" [attr.cy]="d.cy" [attr.r]="d.r"
-                      [attr.stroke-dasharray]="d.c"
-                      [attr.stroke-dashoffset]="d.offset"
-                      [style.--circ]="d.c"
-                      [attr.transform]="'rotate(-90 ' + d.cx + ' ' + d.cy + ')'" />
-            </svg>
+          <div class="donut-wrap">
+            <canvas #engCanvas></canvas>
             <div class="donut-center">
               <span class="donut-pct">{{ e.engagement_rate }}%</span>
             </div>

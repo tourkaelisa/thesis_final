@@ -26,14 +26,6 @@ export class Home implements OnInit {
     return `personalizedProducts_${userId}`;
   }
 
-  categories = [
-    { name: 'Laptops',       route: '/laptops',       description: 'Performance, εργασία, gaming και φορητότητα.' },
-    { name: 'Mobiles',       route: '/mobiles',       description: 'Smartphones με καθαρή σύγκριση χαρακτηριστικών.' },
-    { name: 'Tablets',       route: '/tablets',       description: 'Ελαφριές συσκευές για διάβασμα, media και δουλειά.' },
-    { name: 'Τηλεοράσεις',  route: '/tvs',           description: 'Μεγάλες οθόνες και εικόνα για κάθε χώρο.' },
-    { name: 'Smartwatches',  route: '/smartwatches',  description: 'Wearables για υγεία, ειδοποιήσεις και καθημερινότητα.' }
-  ];
-
   constructor(private router: Router, private streamService: DataStreamService) {}
 
   ngOnInit() {

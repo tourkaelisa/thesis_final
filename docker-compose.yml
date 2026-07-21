@@ -1,0 +1,75 @@
+services:
+  # --- Triplestore: Ontotext GraphDB (port 7200) ---
+  graphdb:
+    # 10.x τρέχει σε FREE mode χωρίς license. (Από 11.0 η Free θέλει license file,
+    # γι' αυτό μένουμε σε 10.x ώστε να σηκώνεται σκέτο με "docker compose up".)
+    image: ontotext/graphdb:10.6.4
+    container_name: eshop_graphdb
+    ports:
+      - "7200:7200"
+    environment:
+      # Κάνει τα .ttl (mounted στο /data) ορατά στο "Import > Server files"
+      # του GraphDB Workbench.
+      GDB_JAVA_OPTS: "-Dgraphdb.workbench.importDirectory=/data"
+    volumes:
+      # Persistence: repositories + δεδομένα ΔΕΝ χάνονται σε restart/rebuild.
+      - graphdb_data:/opt/graphdb/home
+      # Τα .ttl αρχεία (read-only) για import μέσα από το Workbench.
+      - ./data:/data:ro
+
+  # --- One-shot: φτιάχνει αυτόματα το repository + κάνει import τα .ttl ---
+  # Τρέχει, στήνει τη GraphDB και τερματίζει. Idempotent (ασφαλές σε κάθε up).
+  graphdb-init:
+    image: curlimages/curl:latest
+    container_name: eshop_graphdb_init
+    depends_on:
+      - graphdb
+    volumes:
+      - ./data:/data:ro
+      - ./graphdb/repo-config.ttl:/repo-config.ttl:ro
+      - ./graphdb/init.sh:/init.sh:ro
+    entrypoint: ["sh", "/init.sh"]
+    restart: "no"
+
+  # --- Backend: FastAPI + uvicorn (port 8000) ---
+  backend:
+    build: .
+    container_name: eshop_backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Ρυθμίσεις από .env αν υπάρχει· αλλιώς dev defaults ώστε να τρέχει
+      # σκέτο "docker compose up" (π.χ. στον υπολογιστή του καθηγητή).
+      # Το JWT_SECRET είναι ΜΟΝΟ για dev/demo — άλλαξέ το για πραγματικό deploy.
+      JWT_SECRET: ${JWT_SECRET:-dev-insecure-jwt-secret-change-me}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-elisatourka@gmail.com}
+      # Το backend βρίσκει τη GraphDB με ΟΝΟΜΑ SERVICE (όχι localhost).
+      GRAPHDB_ENDPOINT: "http://graphdb:7200/repositories/eshop_thesis"
+    volumes:
+      # Bind mount: ώστε users.db / .jwt_secret να επιβιώνουν και να βλέπεις
+      # αλλαγές κώδικα (μαζί με το --reload παρακάτω). Το /app/__pycache__
+      # μένει anonymous για να μη "μολύνει" τον host.
+      - ./:/app
+      - /app/__pycache__
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - graphdb
+
+  # --- Frontend: Angular dev-server με hot reload (port 4200) ---
+  frontend:
+    build:
+      context: ./fronted
+      dockerfile: Dockerfile
+    container_name: eshop_frontend
+    ports:
+      - "4200:4200"
+    volumes:
+      # Live αλλαγές UI χωρίς rebuild...
+      - ./fronted:/app
+      # ...αλλά κρατάμε τα node_modules του container (να μην τα σκεπάσει το mount).
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  graphdb_data:

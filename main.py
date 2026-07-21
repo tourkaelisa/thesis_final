@@ -1,17 +1,13 @@
 """FastAPI backend: REST endpoints (αυθεντικοποίηση) + WebSocket dispatcher.
 
-Η επιχειρησιακή λογική βρίσκεται στα services (catalog, search, filters,
-dashboard, wishlist, recommendations). Εδώ μένει μόνο η ρύθμιση της
-εφαρμογής, το startup και η δρομολόγηση των αιτημάτων του WebSocket.
+η ρύθμιση της εφαρμογής, το startup και η δρομολόγηση των αιτημάτων του WebSocket.
 """
 import os
 import sqlite3
 import traceback
-
 import rdflib
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-
 import analytics
 import catalog
 import db
@@ -37,7 +33,7 @@ app = FastAPI()
 def authenticated_user_id(data) -> int | None:
     """Επιστρέφει το user_id από το έγκυρο JWT του μηνύματος· αλλιώς None.
 
-    Η ταυτότητα προκύπτει ΑΠΟΚΛΕΙΣΤΙΚΑ από το υπογεγραμμένο token, ποτέ από
+    Η ταυτότητα προκύπτει αποκλειστικά από το υπογεγραμμένο token, ποτέ από
     πεδίο που στέλνει ο client (π.χ. userId), ώστε να μην μπορεί να πλαστογραφηθεί.
     """
     payload = verify_token(data.get("token") or "")
@@ -72,7 +68,7 @@ async def startup_event():
         print(f"Warning: Could not set admin role: {e}")
     print(f"SQLite users database ready: {DATABASE_PATH}")
 
-    # Ο in-memory γράφος (rdflib) χρησιμοποιείται ΜΟΝΟ στο startup: για το χτίσιμο
+    # Ο in-memory γράφος (rdflib) χρησιμοποιείται μονο στο startup: για το χτίσιμο
     # των μοντέλων συστάσεων και το αρχικό seeding δημοτικότητας. Όλα τα ερωτήματα
     # που εξυπηρετούν τον client πραγματικού χρόνου πηγαίνουν στο GraphDB.
     print("Φόρτωση RDF στη μνήμη (μόνο για μηχανή συστάσεων & seeding)...")
@@ -87,7 +83,7 @@ async def startup_event():
         print(f"Σφάλμα: Το αρχείο {RDF_FILE_PATH} δεν βρέθηκε!")
 
 
-# ============================================================ REST: Auth ====
+# REST: Auth
 @app.post("/api/register", status_code=201)
 async def register_user(user: UserRegistration):
     if not user.terms:
@@ -138,7 +134,7 @@ async def login_user(credentials: UserLogin):
     }
 
 
-# ===================================================== WebSocket dispatcher ====
+# WebSocket dispatcher
 @app.websocket("/ws/shop")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -231,7 +227,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Live push: η αφαίρεση μεταβάλλει δημοτικότητα/engagement/churn.
                     await realtime.hub.broadcast_stats()
 
-            # 6. Σημασιολογική αναζήτηση με φίλτρα
+            # 6. φίλτρα
             elif action == "search_category":
                 category = data.get("category")
                 if category not in CATEGORY_CLASSES:

@@ -1,11 +1,9 @@
-"""Απλή αναζήτηση λέξης-κλειδιού πάνω στο GraphDB (όνομα + μάρκα).
-
-Καμία ανάλυση φυσικής γλώσσας: το ερώτημα του χρήστη αντιστοιχίζεται απλώς ως
-substring στο όνομα ή τη μάρκα του προϊόντος, μέσω SPARQL CONTAINS. Η σημασιολογική
-διάσταση παραμένει στο knowledge graph και στα faceted φίλτρα ανά κατηγορία (filters.py).
+"""Απλή αναζήτηση λέξης-κλειδιού πάνω στο GraphDB (όνομα + μάρκα) μέσω SPARQL CONTAINS.
 """
 
-# Κλάση οντολογίας -> (route, ετικέτα) για την εμφάνιση κατηγορίας στα αποτελέσματα.
+import unicodedata
+
+# Κλάση οντολογίας - (route, ετικέτα) για την εμφάνιση κατηγορίας στα αποτελέσματα.
 TYPE_INFO = {
     "http://www.productontology.org/id/Laptop":          {"route": "laptops",      "label": "Laptops"},
     "http://www.productontology.org/id/Smartphone":      {"route": "mobiles",      "label": "Mobiles"},
@@ -28,17 +26,41 @@ def _escape(term: str) -> str:
     return term.replace("\\", "\\\\").replace('"', '\\"')
 
 
+def _strip_accents(text: str) -> str:
+    """Αφαιρεί τόνους/διαλυτικά ώστε «άσπρο» και «ασπρο» να θεωρούνται ίδια."""
+    nfd = unicodedata.normalize("NFD", text)
+    return "".join(c for c in nfd if unicodedata.category(c) != "Mn")
+
+
+# Αντιστοίχιση τονισμένων ελληνικών (πεζών) στις άτονες μορφές, για χρήση στο SPARQL.
+_GREEK_ACCENTS = {
+    "ά": "α", "έ": "ε", "ή": "η", "ί": "ι",
+    "ό": "ο", "ύ": "υ", "ώ": "ω",
+    "ϊ": "ι", "ϋ": "υ", "ΐ": "ι", "ΰ": "υ",
+}
+
+
+def _strip_accents_sparql(expr: str) -> str:
+    """Τυλίγει μια SPARQL έκφραση με αλυσίδα REPLACE ώστε να αφαιρεθούν οι τόνοι."""
+    for accented, plain in _GREEK_ACCENTS.items():
+        expr = f'REPLACE({expr}, "{accented}", "{plain}")'
+    return expr
+
+
 def build_sparql(terms: list[str]) -> str:
-    """SPARQL που απαιτεί ΚΑΘΕ λέξη να εμφανίζεται στο όνομα Ή στη μάρκα (AND μεταξύ λέξεων)."""
+    """SPARQL που απαιτεί κάθε λέξη να εμφανίζεται στο όνομα Ή στη μάρκα.
+    Όνομα/μάρκα και όροι συγκρίνονται άτονα """
+    name_expr = _strip_accents_sparql("LCASE(STR(?name))")
+    brand_expr = _strip_accents_sparql('LCASE(COALESCE(STR(?brand), ""))')
     filters = []
     for t in terms:
         esc = _escape(t)
         filters.append(
-            f'    FILTER(CONTAINS(LCASE(STR(?name)), "{esc}") '
-            f'|| CONTAINS(LCASE(COALESCE(STR(?brand), "")), "{esc}"))'
+            f'    FILTER(CONTAINS({name_expr}, "{esc}") '
+            f'|| CONTAINS({brand_expr}, "{esc}"))'
         )
     return f"""{_PREFIXES}
-SELECT DISTINCT ?uri ?type ?name ?price ?image ?brand
+SELECT DISTINCT ?uri ?type ?name ?price ?image
 WHERE {{
     VALUES ?type {{ {_CLASSES} }}
     ?uri a ?type ;
@@ -66,8 +88,6 @@ def _format(bindings: list) -> list[dict]:
             "name": b["name"]["value"],
             "price": float(b["price"]["value"]),
             "image": b.get("image", {}).get("value", ""),
-            "brand": b.get("brand", {}).get("value", ""),
-            "category": info.get("route", ""),
             "categoryLabel": info.get("label", ""),
         })
     return products
@@ -76,7 +96,7 @@ def _format(bindings: list) -> list[dict]:
 def search(query: str, query_fn, popularity_fn=None) -> list[dict]:
     """Αναζήτηση λέξης-κλειδιού. Επιστρέφει τη λίστα όλων των προϊόντων που
     ταιριάζουν (χωρίς αποκοπή σε πλήθος)."""
-    terms = [t for t in query.lower().split() if t]
+    terms = [_strip_accents(t) for t in query.lower().split() if t]
     if not terms:
         return []
 

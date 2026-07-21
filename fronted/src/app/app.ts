@@ -30,11 +30,11 @@ export class App implements AfterViewInit {
     return user ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase() : '';
   });
 
-  sidebarOpen = true;
+  sidebarOpen = false;
 
   categories = [
     { label: 'Laptops', route: '/laptops' },
-    { label: 'Mobiles', route: '/mobiles' },
+    { label: 'Κινητά', route: '/mobiles' },
     { label: 'Tablets', route: '/tablets' },
     { label: 'Τηλεοράσεις', route: '/tvs' },
     { label: 'Smartwatches', route: '/smartwatches' }

@@ -1,11 +1,8 @@
 <section class="login-page">
   <div class="login-panel">
     <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <p class="eyebrow">Καλώς ήρθες ξανά</p>
       <h2>Σύνδεση</h2>
-      <p class="form-intro">
-        Μπες στον λογαριασμό σου για να συνεχίσεις τις αγορές σου.
-      </p>
+      <p class="form-intro">Καλώς ήρθες ξανά</p>
 
       <mat-form-field appearance="outline">
         <mat-label>Email</mat-label>
@@ -28,11 +25,6 @@
           Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.
         </mat-error>
       </mat-form-field>
-
-      <div class="login-options">
-        <mat-checkbox formControlName="rememberMe">Να με θυμάσαι</mat-checkbox>
-        <button mat-button type="button" class="forgot-button">Ξέχασα τον κωδικό</button>
-      </div>
 
       <p *ngIf="errorMessage()" class="form-error">
         {{ errorMessage() }}

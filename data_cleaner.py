@@ -18,11 +18,8 @@ MAPPINGS = {
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
 
+# Βοηθητική συνάρτηση που βρίσκει τον πρώτο αριθμό σε ένα κείμενο. Επιστρέφει float αν as_float=True, αλλιώς int.
 def extract_number(text, as_float=False):
-    """
-    Βοηθητική συνάρτηση που βρίσκει τον πρώτο αριθμό σε ένα κείμενο.
-    Επιστρέφει float αν as_float=True, αλλιώς int.
-    """
     text_clean = str(text).replace(',', '.')
     match = re.search(r'\d+(\.\d+)?', text_clean)
     if match:
@@ -109,11 +106,12 @@ def clean_specs(specs):
                 cleaned["screen_resolution_text"] = raw_val.replace('pixels', '').replace('px', '').strip()
             break
 
-    # 9. Booleans 
+    # 9. Booleans // δεν τα χω φορτωσει ακομα στο graphDB
     cleaned = {k: (True if v == "Ναι" else False if v == "Όχι" else v) for k, v in cleaned.items()}
 
     return cleaned
 
+# καθαρισμος τον json αρχειων
 def clean_all_files():
     files = [f for f in os.listdir(INPUT_DIR) if f.endswith('.json')]
     for file_name in files:
@@ -123,7 +121,8 @@ def clean_all_files():
             except json.JSONDecodeError as e:
                 print(f"Σφάλμα στο {file_name}: {e}")
                 continue
-                
+
+        # κρατάμε μόνο προϊόντα με price>0, καθαρισμός των specs, deduplication με βάση το name (όταν υπάρχουν διπλά, προτιμάμε το URL χωρίς # που δείχνει στην κανονική σελίδα του προϊόντος)
         unique_products = {}
         for item in data:
             if item.get('price', 0) > 0: 

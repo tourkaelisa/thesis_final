@@ -1,28 +1,14 @@
-"""Analytics: υπολογισμός όλων των μετρικών του πίνακα ελέγχου και του slideshow.
-
-Single source of truth για τα στατιστικά. Συνδυάζει σημασιολογικά δεδομένα από
-το GraphDB (προϊόντα, τιμές, κατασκευαστές) με δεδομένα συμπεριφοράς από τη
-SQLite (χρήστες, δημοτικότητα, wishlist).
-
-Διαχωρισμός ευθυνών:
-  - db.py        → καθαρή πρόσβαση/συναλλαγές στη SQLite
-  - graphdb.py   → εκτέλεση SPARQL στο GraphDB
-  - analytics.py → ΕΔΩ: υπολογισμός/σύνθεση μετρικών (καμία άλλη λογική analytics
-                   δεν πρέπει να ζει σκόρπια σε db.py ή στο main.py)
-
+"""Analytics: υπολογισμός όλων των μετρικών του πίνακα ελέγχου και των δημοφιλέστερων στην αρχική σελίδα.
 Κάθε μετρική είναι μια αυτοτελής συνάρτηση· η get_dashboard_stats() απλώς τις
 συνθέτει σε ένα ενιαίο payload για το frontend.
 """
 import datetime
-
 import db
-from config import CATEGORY_CLASSES, CATEGORY_LABELS
 from graphdb import query_graphdb, bval
 
 
-# ───────────────────────────────────── Δημοφιλέστερα προϊόντα (slideshow) ────
+# Δημοφιλέστερα προϊόντα (πλέγμα τοπ 8 δημοφιλεστερων στην αρχική)
 def get_popular_products(limit: int = 8) -> list:
-    """Τα top-N πιο δημοφιλή προϊόντα συνολικά (για την αρχική σελίδα)."""
     top = db.get_top_popular_uris(limit)
     if not top:
         return []
@@ -58,9 +44,8 @@ def get_popular_products(limit: int = 8) -> list:
     return products
 
 
-# ──────────────────────────────────────────────────── KPI (συγκεντρωτικά) ────
+# KPI (Σύνολα χρηστών, προσθηκών στη wishlist και προϊόντων)
 def _kpi_counts() -> dict:
-    """Σύνολα χρηστών, προσθηκών στη wishlist και προϊόντων (από SQLite)."""
     with db.get_db_connection() as conn:
         total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
         total_wishlists = conn.execute(
@@ -76,18 +61,16 @@ def _kpi_counts() -> dict:
     }
 
 
-# ──────────────────────────────────────────────── Top δημοφιλή προϊόντα ────
+# κάνει return το όνομα ενός προϊόντος από το URI του
 def _product_name(uri: str) -> str:
-    """Το gr:name ενός προϊόντος από το GraphDB (fallback: το τελευταίο τμήμα του URI)."""
     res = query_graphdb(
         f"PREFIX gr: <http://purl.org/goodrelations/v1#> "
         f"SELECT ?name WHERE {{ <{uri}> gr:name ?name . }}"
     )
     return bval(res[0], "name") if res else uri.split("/")[-1]
 
-
-def _top_products(limit: int = 10) -> list:
-    """Λίστα {name, popularity} για τα δημοφιλέστερα προϊόντα (leaderboard)."""
+# τοπ 5 δημοφιλέστερα προϊόντα
+def _top_products(limit: int = 5) -> list:
     with db.get_db_connection() as conn:
         rows = conn.execute(
             "SELECT product_uri, popularity_score FROM product_popularity "
@@ -100,70 +83,8 @@ def _top_products(limit: int = 10) -> list:
     ]
 
 
-# ───────────────────────────────────────── Κατηγορίες: πλήθος & μέση τιμή ────
-def _category_breakdown() -> tuple:
-    """Επιστρέφει (category_counts, avg_prices) ανά κατηγορία προϊόντος (από GraphDB)."""
-    cat_map = {CATEGORY_LABELS[k]: v for k, v in CATEGORY_CLASSES.items()}
-    category_counts = []
-    avg_prices = []
-    for label, rdf_class in cat_map.items():
-        res_count = query_graphdb(
-            f"PREFIX pto: <http://www.productontology.org/id/> "
-            f"SELECT (COUNT(?u) AS ?c) WHERE {{ ?u a {rdf_class} . }}"
-        )
-        count = int(bval(res_count[0], "c")) if res_count and bval(res_count[0], "c") else 0
-        category_counts.append({"category": label, "count": count})
-
-        res_avg = query_graphdb(
-            f"PREFIX pto: <http://www.productontology.org/id/> "
-            f"PREFIX schema1: <http://schema.org/> "
-            f"SELECT (AVG(?price) AS ?avg) WHERE {{ "
-            f"  ?u a {rdf_class} ; schema1:price ?price . }}"
-        )
-        avg = round(float(bval(res_avg[0], "avg")), 2) if res_avg and bval(res_avg[0], "avg") else 0
-        avg_prices.append({"category": label, "avg_price": avg})
-
-    return category_counts, avg_prices
-
-
-# ───────────────────────────────── Ακρότατα τιμών ανά κατηγορία ────
-def _price_extreme(rdf_class: str, ascending: bool) -> dict | None:
-    """Το φθηνότερο (ascending) ή ακριβότερο προϊόν μιας κλάσης (όνομα, τιμή, εικόνα)."""
-    order = "ASC" if ascending else "DESC"
-    res = query_graphdb(
-        f"PREFIX pto: <http://www.productontology.org/id/> "
-        f"PREFIX gr: <http://purl.org/goodrelations/v1#> "
-        f"PREFIX schema1: <http://schema.org/> "
-        f"SELECT ?name ?price ?image WHERE {{ "
-        f"  ?u a {rdf_class} ; gr:name ?name ; schema1:price ?price . "
-        f"  OPTIONAL {{ ?u schema1:image ?image . }} "
-        f"}} ORDER BY {order}(?price) LIMIT 1"
-    )
-    if not res:
-        return None
-    r = res[0]
-    return {
-        "name": bval(r, "name"),
-        "price": float(bval(r, "price")),
-        "image": bval(r, "image") or None,
-    }
-
-
-def get_price_extremes_per_category() -> list:
-    """Ανά κατηγορία: το φθηνότερο και το ακριβότερο προϊόν."""
-    cat_map = {CATEGORY_LABELS[k]: v for k, v in CATEGORY_CLASSES.items()}
-    extremes = []
-    for label, rdf_class in cat_map.items():
-        cheapest = _price_extreme(rdf_class, ascending=True)
-        priciest = _price_extreme(rdf_class, ascending=False)
-        if cheapest or priciest:
-            extremes.append({"category": label, "cheapest": cheapest, "priciest": priciest})
-    return extremes
-
-
-# ───────────────────────────────────────────────────────── Top brands ────
+# Top brands (με τα περισσότερα προϊόντα)
 def _top_brands(limit: int = 5) -> list:
-    """Οι κατασκευαστές με τα περισσότερα προϊόντα (από GraphDB)."""
     brand_res = query_graphdb(
         "PREFIX schema1: <http://schema.org/> "
         "SELECT ?brand (COUNT(?p) AS ?cnt) WHERE { "
@@ -178,13 +99,8 @@ def _top_brands(limit: int = 5) -> list:
     return top_brands
 
 
-# ─────────────────────────────────────────── Χρονοσειρά εγγραφών χρηστών ────
+# Χρονοσειρά εγγραφών χρηστών ανά ημέρα για τις τελεύταίες 30 μέρες
 def get_registrations_timeline(days: int = 30) -> list:
-    """Εγγραφές χρηστών ανά ημέρα για τις τελευταίες `days` μέρες.
-
-    Επιστρέφει λίστα από dicts {date, count, cumulative}, με τα κενά διαστήματα
-    γεμισμένα με 0 ώστε το γράφημα να είναι συνεχές. Το `cumulative` ξεκινά από
-    το σύνολο των χρηστών που είχαν ήδη εγγραφεί πριν το παράθυρο."""
     today = datetime.date.today()
     window_start = today - datetime.timedelta(days=days - 1)
     start_iso = window_start.isoformat()
@@ -212,14 +128,8 @@ def get_registrations_timeline(days: int = 30) -> list:
     return timeline
 
 
-# ────────────────────────────────────── Δραστηριότητα wishlist (προσθήκες) ────
+# Προσθήκες στο wishlist - Μετρά τις γραμμές του πίνακα wishlist βάσει added_at (ταν ένας χρήστης αφαιρεί ένα προϊόν, η γραμμή διαγράφεται)
 def get_wishlist_activity_timeline(days: int = 30) -> list:
-    """Προσθήκες στη wishlist ανά ημέρα για τις τελευταίες `days` μέρες.
-
-    Μετρά τις γραμμές του πίνακα wishlist βάσει `added_at` (γεμίζει τα κενά με 0).
-    Προσοχή: όταν ένας χρήστης αφαιρεί ένα προϊόν, η γραμμή διαγράφεται· άρα η
-    σειρά αποτυπώνει τις προσθήκες που παραμένουν ενεργές, ανά ημέρα προσθήκης
-    (το σωρευτικό total_additions δεν φέρει χρονοσήμανση)."""
     today = datetime.date.today()
     window_start = today - datetime.timedelta(days=days - 1)
     start_iso = window_start.isoformat()
@@ -239,13 +149,9 @@ def get_wishlist_activity_timeline(days: int = 30) -> list:
     return timeline
 
 
-# ───────────────────────────────────────── Προϊόντα που εγκαταλείπονται ────
+# Προϊόντα που εγκαταλείπονται (που προστέθηκαν στη wishlist και αργότερα αφαιρέθηκαν) abandoned = total_additions − popularity_score
+# περιλαμβάνει το τρέχον πλήθος, τις συνολικές προσθήκες και το ποσοστό εγκατάλειψης
 def get_abandoned_products(limit: int = 6) -> list:
-    """Προϊόντα που προστέθηκαν στη wishlist και αργότερα αφαιρέθηκαν.
-
-    abandoned = total_additions − popularity_score (πόσες φορές αφαιρέθηκε).
-    Ταξινόμηση κατά φθίνον abandoned· περιλαμβάνει το τρέχον πλήθος (retained),
-    τις συνολικές προσθήκες και το ποσοστό εγκατάλειψης."""
     with db.get_db_connection() as conn:
         rows = conn.execute(
             "SELECT product_uri, popularity_score, total_additions, "
@@ -270,15 +176,10 @@ def get_abandoned_products(limit: int = 6) -> list:
     return products
 
 
-# ───────────────────────────────────────────── Engagement / ενεργοί χρήστες ────
+# ενεργοί χρήστες (όσοι έχουν ≥1 αγαπημένο), μέσος όρος αγαπημένων ανά ενεργό χρήστη, κατανομή μεγέθους λίστας
 def get_engagement_stats() -> dict:
-    """Engagement χρηστών: πόσοι έχουν ≥1 αγαπημένο (ενεργοί) έναντι του συνόλου.
-
-    Περιλαμβάνει επίσης τον μέσο αριθμό αγαπημένων ανά ενεργό χρήστη και την
-    κατανομή του μεγέθους της λίστας σε κάδους (1 / 2–3 / 4–5 / 6+)."""
     with db.get_db_connection() as conn:
         total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-        # πλήθος αγαπημένων ανά χρήστη — μόνο για όσους έχουν ≥1
         size_rows = conn.execute(
             "SELECT user_id, COUNT(*) AS n FROM wishlist GROUP BY user_id"
         ).fetchall()
@@ -312,10 +213,8 @@ def get_engagement_stats() -> dict:
     }
 
 
-# ──────────────────────────────────────── Σύνθεση: πλήρες payload dashboard ────
+# payload dashboard
 def get_dashboard_stats() -> dict:
-    """Συνθέτει όλες τις μετρικές σε ένα ενιαίο payload για το frontend."""
-    category_counts, avg_prices = _category_breakdown()
     return {
         **_kpi_counts(),
         "registrations_timeline": get_registrations_timeline(),
@@ -323,7 +222,5 @@ def get_dashboard_stats() -> dict:
         "engagement": get_engagement_stats(),
         "abandoned_products": get_abandoned_products(),
         "top_products": _top_products(),
-        "category_counts": category_counts,
-        "avg_prices": avg_prices,
         "top_brands": _top_brands(),
     }

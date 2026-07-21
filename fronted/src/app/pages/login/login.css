@@ -13,12 +13,26 @@
 }
 
 .login-panel {
+  position: relative;
   width: min(560px, 100%);
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(6, 182, 212, 0.22);
-  border-radius: 8px;
+  border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 28px 80px rgba(8, 47, 73, 0.18);
+  backdrop-filter: blur(6px);
+  animation: panel-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes panel-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .login-form {
@@ -26,15 +40,6 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-}
-
-.eyebrow {
-  margin: 0;
-  color: #0284c7;
-  font-size: 0.78rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0;
 }
 
 .login-form h2 {
@@ -54,19 +59,6 @@ mat-form-field {
   width: 100%;
 }
 
-.login-options {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  color: #0f4563;
-}
-
-.forgot-button {
-  white-space: nowrap;
-  font-weight: 900;
-}
-
 .form-error {
   margin: -6px 0 0;
   color: #b91c1c;
@@ -75,9 +67,25 @@ mat-form-field {
 }
 
 .submit-button {
-  min-height: 48px;
-  font-size: 1rem;
+  min-height: 52px;
+  margin-top: 4px;
+  font-size: 1.02rem;
   font-weight: 900;
+  letter-spacing: 0.02em;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0e7490, #06b6d4);
+  box-shadow: 0 14px 30px rgba(14, 116, 144, 0.35);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.submit-button:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(14, 116, 144, 0.45);
+  filter: brightness(1.05);
+}
+
+.submit-button:active:not([disabled]) {
+  transform: translateY(0);
 }
 
 .register-link {
@@ -103,10 +111,5 @@ mat-form-field {
 
   .login-form {
     padding: 30px 20px;
-  }
-
-  .login-options {
-    align-items: flex-start;
-    flex-direction: column;
   }
 }

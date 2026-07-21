@@ -46,7 +46,7 @@ def get_similar_products(product_uri):
 
 
 def get_personalized_products(wishlist_uris):
-    """Εξατομικευμένες προτάσεις βάσει της wishlist· επιστρέφει λίστα προϊόντων."""
+    """Εξατομικευμένες προτάσεις βάσει της wishlist, επιστρέφει λίστα προϊόντων."""
     top_uris = engine.get_personalized_recommendations(wishlist_uris, models)
     products = []
     for rec_uri in top_uris:

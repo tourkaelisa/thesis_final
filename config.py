@@ -1,11 +1,14 @@
-"""Κεντρικές ρυθμίσεις του backend."""
+#Κεντρικές ρυθμίσεις του backend
 import os
 import secrets
 
 # Διαδρομές αρχείων / endpoints
-RDF_FILE_PATH = "data/master_eshop_fixed.ttl"
+RDF_FILE_PATH = "data/master_eshop_enriched.ttl" #τα δεδομένα με την DBpedia διασυνδεση
 DATABASE_PATH = "users.db"
-GRAPHDB_ENDPOINT = "http://localhost:7200/repositories/eshop_thesis"
+# Σε Docker δίνεται μέσω env (service name: graphdb)· τοπικά πέφτει σε localhost.
+GRAPHDB_ENDPOINT = os.environ.get(
+    "GRAPHDB_ENDPOINT", "http://localhost:7200/repositories/eshop_thesis"
+)
 
 
 # JWT
@@ -43,9 +46,9 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = 2
 
 # Διαχειριστής (προάγεται αυτόματα σε admin στο startup)
-ADMIN_EMAIL = "elisatourka@gmail.com"
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "elisatourka@gmail.com")
 
-# Αντιστοίχιση route κατηγορίας -> κλάση PTO (όπως χρησιμοποιείται στα SPARQL)
+# Αντιστοίχιση route κατηγορίας -> κλάση PTO 
 CATEGORY_CLASSES = {
     "laptops": "pto:Laptop",
     "mobiles": "pto:Smartphone",
@@ -54,11 +57,3 @@ CATEGORY_CLASSES = {
     "smartwatches": "pto:Smartwatch",
 }
 
-# Ετικέτες κατηγοριών (για την αρχική & το dashboard)
-CATEGORY_LABELS = {
-    "laptops": "Laptops",
-    "mobiles": "Mobiles",
-    "tablets": "Tablets",
-    "tvs": "Τηλεοράσεις",
-    "smartwatches": "Smartwatches",
-}

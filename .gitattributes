@@ -1,0 +1,3 @@
+# Τα shell scripts ΠΡΕΠΕΙ να έχουν LF (αλλιώς σπάνε μέσα σε Linux container,
+# π.χ. όταν κλωνοποιηθεί το repo σε Windows).
+*.sh text eol=lf

@@ -3,9 +3,8 @@ import db
 from config import CATEGORY_CLASSES
 from graphdb import query_graphdb, bval
 
-
+# Όλα τα προϊόντα μιας κατηγορίας με τα χαρακτηριστικά τους
 def get_category_products(category) -> list:
-    """Όλα τα προϊόντα μιας κατηγορίας με τα χαρακτηριστικά τους (basic + ποσοτικά)."""
     rdf_class = CATEGORY_CLASSES[category]
 
     query = f"""
@@ -65,21 +64,17 @@ def get_category_products(category) -> list:
             prop_name = node_uri.split(sep, 1)[-1]
             product_map[uri]["props"][prop_name] = float(b["val"]["value"])
 
-    # Συνδυάζουμε resolution_width + resolution_height → "1920×1080"
+    # Συνδυάζουμε resolution_width x resolution_height 
     for p in product_map.values():
         w = p["props"].pop("resolution_width", None)
         h = p["props"].pop("resolution_height", None)
         if w is not None and h is not None:
             p["resolution"] = f"{int(w)}×{int(h)}"
 
-    products = list(product_map.values())
-    db.attach_popularity(products)
-    return products
+    return list(product_map.values())
 
-
+#Πλήρεις λεπτομέρειες ενός προϊόντος
 def get_product_details(product_uri, user_id) -> dict:
-    """Πλήρεις λεπτομέρειες ενός προϊόντος: χαρακτηριστικά, specs, δημοτικότητα,
-    κατάσταση wishlist και σύνδεσμος DBpedia του κατασκευαστή."""
     query_basic = f"""
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -201,7 +196,6 @@ def get_product_details(product_uri, user_id) -> dict:
     details["specs"] = specs
     details["id"] = product_uri
 
-    details["popularity"] = db.get_popularity(product_uri)
     details["isWishlisted"] = db.is_wishlisted(user_id, product_uri) if user_id else False
 
     # Ανάκτηση DBpedia link για τον κατασκευαστή

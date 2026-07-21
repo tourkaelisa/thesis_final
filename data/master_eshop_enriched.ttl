@@ -2742,7 +2742,7 @@ eshop:mobiles_23 a gr:ProductOrService,
     schema1:color "Γκρι"@el ;
     schema1:image <https://b.scdn.gr/images/sku_main_images/061637/61637807/20250714101216_oneplus_nord_5_5g_dual_sim_phantom_grey.jpeg> ;
     schema1:manufacturer eshop:Brand_OnePlus ;
-    schema1:operatingSystem "Κατασκευαστή"@el ;
+    schema1:operatingSystem "Android"@el ;
     schema1:price "385.59"^^xsd:float ;
     schema1:priceCurrency "EUR" ;
     schema1:releaseDate "2025"^^xsd:gYear ;

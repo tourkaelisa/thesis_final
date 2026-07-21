@@ -1,0 +1,17 @@
+# Third-party dependencies (imported in the .py sources)
+beautifulsoup4==4.14.3
+fastapi==0.136.1
+pandas==2.3.3
+pydantic==2.13.4
+PyJWT==2.13.0
+rdflib==7.5.0
+requests==2.32.5
+scikit-learn==1.8.0
+selenium==4.39.0
+SPARQLWrapper==2.0.0
+webdriver-manager==4.0.2
+
+# Runtime dependencies for the FastAPI app (not imported directly,
+# but required to serve the API and WebSocket endpoints)
+uvicorn==0.47.0
+websockets==15.0.1

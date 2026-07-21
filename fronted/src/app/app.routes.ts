@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import { Routes, UrlSegment } from '@angular/router';
 import { Category } from './pages/category/category';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { Home } from './pages/home/home';
@@ -8,6 +8,17 @@ import { Register } from './pages/register/register';
 import { Wishlist } from './pages/wishlist/wishlist';
 import { Search } from './pages/search/search';
 
+// Έγκυρες κατηγορίες· οτιδήποτε άλλο δεν θεωρείται κατηγορία και πέφτει στο wildcard.
+const KNOWN_CATEGORIES = ['laptops', 'mobiles', 'tablets', 'tvs', 'smartwatches'];
+
+// Ταιριάζει το /:name μόνο όταν είναι γνωστή κατηγορία (αλλιώς null → δοκιμάζεται το επόμενο route).
+export function categoryMatcher(segments: UrlSegment[]) {
+  if (segments.length === 1 && KNOWN_CATEGORIES.includes(segments[0].path)) {
+    return { consumed: segments, posParams: { name: segments[0] } };
+  }
+  return null;
+}
+
 export const routes: Routes = [
   { path: '', component: Home },
   { path: 'login', component: Login },
@@ -16,5 +27,7 @@ export const routes: Routes = [
   { path: 'wishlist', component: Wishlist },
   { path: 'search', component: Search },
   { path: 'product/:uri', component: Product },
-  { path: ':name', component: Category }
+  { matcher: categoryMatcher, component: Category },
+  // Άγνωστο URL → αρχική σελίδα.
+  { path: '**', redirectTo: '' }
 ];

@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Τοπικά runtime αρχεία (δημιουργούνται μέσα στο container)
+users.db
+.jwt_secret
+
+# Secrets — ΠΟΤΕ μέσα στο image
+.env
+
+# Το frontend χτίζεται σε δικό του image, δεν χρειάζεται στο backend
+fronted/
+
+# Git / IDE / OS
+.git/
+.gitignore
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+
+# Docker artifacts
+docker-compose.yml
+Dockerfile
+.dockerignore

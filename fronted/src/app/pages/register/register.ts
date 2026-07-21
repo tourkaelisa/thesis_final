@@ -78,7 +78,7 @@ export class Register {
     const { confirmPassword, ...payload } = this.registerForm.getRawValue();
     this.isSubmitting.set(true);
 
-    this.http.post<CurrentUser>('http://localhost:8000/api/register', payload).subscribe({
+    this.http.post<CurrentUser>('/api/register', payload).subscribe({
       next: (user) => {
         this.auth.setUser(user);
         this.successMessage.set('Ο λογαριασμός δημιουργήθηκε με επιτυχία.');

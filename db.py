@@ -4,9 +4,7 @@
 σε αντιδιαστολή με τα σημασιολογικά δεδομένα των προϊόντων που ζουν στο GraphDB.
 """
 import sqlite3
-
 import rdflib
-
 from config import DATABASE_PATH
 
 
@@ -43,7 +41,6 @@ def init_user_database():
             )
             """
         )
-        # Migration: πρόσθεσε τη στήλη total_additions σε βάσεις που υπάρχουν ήδη.
         existing_cols = [
             r[1] for r in connection.execute("PRAGMA table_info(product_popularity)").fetchall()
         ]
@@ -68,17 +65,11 @@ def init_user_database():
             "CREATE INDEX IF NOT EXISTS idx_wishlist_user ON wishlist(user_id)"
         )
 
-
+# συγχρονίζει τη δημοτικότητα με τα πραγματικά αγαπημένα 
+# popularity_score = πόσοι χρήστες έχουν το προϊόν στα αγαπημένα (μειώνεται στην αφαίρεση).
+# total_additions  = σωρευτικές προσθήκες (δεν μειώνεται).
 def sync_popularity(graph: rdflib.Graph):
-    """Συγχρονίζει τη δημοτικότητα με τα πραγματικά αγαπημένα (στο startup).
-
-    Η δημοτικότητα ΔΕΝ είναι πλέον τυχαία:
-      - popularity_score = πόσοι χρήστες έχουν ΤΩΡΑ το προϊόν στα αγαπημένα (μειώνεται στην αφαίρεση).
-      - total_additions  = σωρευτικές προσθήκες ποτέ (δεν μειώνεται· τροφοδοτεί το dashboard).
-    Έτσι κάθε προϊόν ξεκινά στο 0 και ανεβαίνει μόνο με πραγματικά αγαπημένα.
-    """
     with get_db_connection() as connection:
-        # 1. Σιγουρεύουμε ότι κάθε προϊόν του καταλόγου έχει γραμμή (αρχικά 0/0).
         results = graph.query(
             """
             PREFIX gr: <http://purl.org/goodrelations/v1#>
@@ -90,7 +81,7 @@ def sync_popularity(graph: rdflib.Graph):
             "(product_uri, popularity_score, total_additions) VALUES (?, 0, 0)",
             [(str(r.uri),) for r in results],
         )
-        # 2. popularity_score = τρέχον πλήθος αγαπημένων (μηδενίζει και παλιές τυχαίες τιμές).
+        # popularity_score = τρέχον πλήθος αγαπημένων (μηδενίζει και παλιές τυχαίες τιμές επειδή στην αρχή είχα βάλει μερικές default).
         connection.execute("UPDATE product_popularity SET popularity_score = 0")
         connection.execute(
             """
@@ -100,7 +91,7 @@ def sync_popularity(graph: rdflib.Graph):
             )
             """
         )
-        # 3. total_additions: βάση τουλάχιστον όσα τα τρέχοντα αγαπημένα (ποτέ δεν μικραίνει).
+        # total_additions = βάση τουλάχιστον όσα τα τρέχοντα αγαπημένα 
         connection.execute(
             "UPDATE product_popularity SET total_additions = popularity_score "
             "WHERE total_additions < popularity_score"
@@ -108,9 +99,8 @@ def sync_popularity(graph: rdflib.Graph):
         print("Synced popularity from wishlist (0 = κανένας στα αγαπημένα).")
 
 
-# ---------------------------------------------------------------- Χρήστες ----
+# Δημιουργεί χρήστη και επιστρέφει το id του
 def create_user(first_name, last_name, email, phone, password_hash, terms_accepted) -> int:
-    """Δημιουργεί χρήστη και επιστρέφει το id του. Μπορεί να ρίξει sqlite3.IntegrityError."""
     with get_db_connection() as connection:
         cursor = connection.execute(
             """
@@ -145,28 +135,7 @@ def set_admin_role(email) -> int:
         return result.rowcount
 
 
-# ----------------------------------------------------------- Δημοτικότητα ----
-def get_popularity(product_uri) -> int:
-    with get_db_connection() as conn:
-        row = conn.execute(
-            "SELECT popularity_score FROM product_popularity WHERE product_uri = ?",
-            (product_uri,),
-        ).fetchone()
-    return row["popularity_score"] if row else 0
-
-
-def attach_popularity(products: list) -> list:
-    """Προσθέτει το πεδίο 'popularity' σε κάθε προϊόν (με κλειδί 'id')."""
-    with get_db_connection() as conn:
-        for product in products:
-            row = conn.execute(
-                "SELECT popularity_score FROM product_popularity WHERE product_uri = ?",
-                (product["id"],),
-            ).fetchone()
-            product["popularity"] = row["popularity_score"] if row else 0
-    return products
-
-
+# Δημοτικότητα 
 def get_popularity_map() -> dict:
     with get_db_connection() as conn:
         rows = conn.execute(
@@ -189,7 +158,7 @@ def get_top_popular_uris(limit: int = 8) -> list:
     return [(r["product_uri"], r["popularity_score"]) for r in rows]
 
 
-# ---------------------------------------------------------------- Wishlist ----
+# Wishlist
 def get_wishlist_uris(user_id) -> list:
     """Τα URIs της wishlist με σειρά προσθήκης (νεότερα πρώτα)."""
     with get_db_connection() as conn:
@@ -198,16 +167,6 @@ def get_wishlist_uris(user_id) -> list:
             (user_id,),
         ).fetchall()
     return [r["product_uri"] for r in rows]
-
-
-def get_wishlist_uri_set(user_id) -> set:
-    """Τα URIs της wishlist ως σύνολο (χωρίς σειρά) — για τη μηχανή προτάσεων."""
-    with get_db_connection() as conn:
-        rows = conn.execute(
-            "SELECT product_uri FROM wishlist WHERE user_id = ?",
-            (user_id,),
-        ).fetchall()
-    return {r["product_uri"] for r in rows}
 
 
 def is_wishlisted(user_id, product_uri) -> bool:
@@ -263,8 +222,7 @@ def toggle_wishlist(user_id, product_uri):
 
 
 def remove_from_wishlist(user_id, product_uri):
-    """Αφαιρεί το προϊόν από τη wishlist και ξαναϋπολογίζει το popularity_score
-    (= τρέχον πλήθος αγαπημένων). Το total_additions δεν μεταβάλλεται στην αφαίρεση."""
+    """Αφαιρεί το προϊόν από τη wishlist και ξαναϋπολογίζει το popularity_score"""
     with get_db_connection() as conn:
         conn.execute(
             "DELETE FROM wishlist WHERE user_id = ? AND product_uri = ?",

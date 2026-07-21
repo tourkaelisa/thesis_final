@@ -28,17 +28,6 @@
   background: linear-gradient(90deg, #38bdf8, #22d3ee, #2dd4bf, #67e8f9);
 }
 
-.eyebrow {
-  position: relative;
-  z-index: 1;
-  margin: 0 0 14px;
-  color: #a5f3fc;
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
 .category-hero h1 {
   position: relative;
   z-index: 1;
@@ -378,10 +367,6 @@
 @media (max-width: 760px) {
   :host {
     padding: 18px 12px 42px;
-  }
-
-  .category-hero {
-    min-height: 200px;
   }
 
   .filter-bar-header {

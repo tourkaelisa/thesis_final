@@ -13,8 +13,11 @@ export class DataStreamService {
   private router = inject(Router);
 
   constructor() {
-    // Σύνδεση στον FastAPI WebSocket Server (της Python)
-    this.socket$ = webSocket('ws://localhost:8000/ws/shop');
+    // Σύνδεση στον FastAPI WebSocket Server (της Python) μέσω same-origin.
+    // Έτσι ο proxy (dev-server proxy.conf.json / nginx στο prod) προωθεί το
+    // /ws/shop στο backend service — ο browser δεν χρειάζεται να ξέρει το host.
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    this.socket$ = webSocket(`${wsProtocol}://${window.location.host}/ws/shop`);
 
     // Eager connect: ανοίγουμε το WebSocket αμέσως στο bootstrap ώστε το
     // handshake να τρέχει παράλληλα με τη φόρτωση της Angular. Έτσι όταν η
