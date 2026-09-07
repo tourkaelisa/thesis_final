@@ -7,9 +7,9 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# Κοινοί υποχρεωτικοί κανόνες για όλα τα προϊόντα
-# Ελέγχονται μόνο τα κύρια χαρακτηριστικά που παράγονται
-
+# ---------------------------------------------------------
+# ΓΕΝΙΚΟΣ ΚΑΝΟΝΑΣ: Πρέπει να ισχύει για ΟΛΑ τα προϊόντα!
+# ---------------------------------------------------------
 eshop:GlobalProductShape a sh:NodeShape ;
     sh:targetClass gr:ProductOrService ;
 
@@ -17,101 +17,135 @@ eshop:GlobalProductShape a sh:NodeShape ;
         sh:path schema:price ;
         sh:minCount 1 ;
         sh:datatype xsd:float ;
-        sh:message "Το προϊόν δεν διαθέτει έγκυρη τιμή." ;
+        sh:message "Το πεδίο τιμής είναι υποχρεωτικό και πρέπει να είναι δεκαδικός αριθμός (float)." ;
     ] ;
     sh:property [
         sh:path schema:priceCurrency ;
         sh:minCount 1 ;
         sh:hasValue "EUR" ;
-        sh:message "Λείπει το νόμισμα ή δεν είναι EUR." ;
+        sh:message "Το πεδίο νομίσματος είναι υποχρεωτικό και πρέπει να είναι EUR." ;
     ] ;
     sh:property [
         sh:path gr:name ;
         sh:minCount 1 ;
-        sh:message "Λείπει το όνομα του προϊόντος." ;
+        sh:message "Το όνομα του προϊόντος είναι υποχρεωτικό." ;
     ] ;
     sh:property [
         sh:path schema:image ;
         sh:minCount 1 ;
         sh:nodeKind sh:IRI ;
-        sh:message "Λείπει η εικόνα του προϊόντος." ;
+        sh:message "Το URL της εικόνας είναι υποχρεωτικό." ;
     ] ;
     sh:property [
         sh:path schema:url ;
         sh:minCount 1 ;
         sh:nodeKind sh:IRI ;
-        sh:message "Λείπει το URL του προϊόντος." ;
+        sh:message "Το URL του προϊόντος είναι υποχρεωτικό." ;
     ] ;
     sh:property [
         sh:path schema:manufacturer ;
         sh:minCount 1 ;
         sh:nodeKind sh:IRI ;
-        sh:message "Λείπει ο κατασκευαστής του προϊόντος." ;
+        sh:message "Ο κατασκευαστής (brand) είναι υποχρεωτικός." ;
     ] .
 
-# ΚΑΝΟΝΕΣ ΑΝΑ ΚΑΤΗΓΟΡΙΑ (για τα χαρακτηριστικά τα οποία δεν έχουν όλα τα προϊόντα της κατηγορίας δεν δημιουργήθηκε αντίστοιχος κανόνας )
+# ---------------------------------------------------------
+# ΕΙΔΙΚΟΙ ΚΑΝΟΝΕΣ ΑΝΑ ΚΑΤΗΓΟΡΙΑ
+# (Ισχύουν αυστηρά για ΟΛΑ τα προϊόντα της συγκεκριμένης κατηγορίας)
+# ---------------------------------------------------------
 
+# 1. Laptops
 eshop:LaptopShape a sh:NodeShape ;
     sh:targetClass pto:Laptop ;
-    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Το laptop δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
-    sh:property [ sh:path rdf:type ; sh:hasValue pto:Laptop ; sh:message "Το laptop δεν έχει δηλωθεί ως pto:Laptop." ] ;
-    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Λείπει το λειτουργικό σύστημα του laptop." ] ;
-    sh:property [ sh:path prop:cpu_model ; sh:minCount 1 ; sh:message "Λείπει το μοντέλο CPU του laptop." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_ram$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει η μνήμη RAM του laptop." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_storage$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει ο αποθηκευτικός χώρος του laptop." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_screen_size$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το μέγεθος οθόνης του laptop." ] ;
-    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Λείπει το χρώμα του laptop." ] ;
-    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Λείπει το έτος κυκλοφορίας του laptop." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_refresh_rate$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει ο ρυθμός ανανέωσης του laptop." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_width$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το πλάτος ανάλυσης οθόνης του laptop." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_height$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το ύψος ανάλυσης οθόνης του laptop." ] .
+    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Το laptop πρέπει να ανήκει στην κλάση gr:ProductOrService." ] ;
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Το Λειτουργικό Σύστημα είναι υποχρεωτικό στα laptops." ] ;
+    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Η Χρονιά Κυκλοφορίας είναι υποχρεωτική στα laptops." ] ;
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Το Χρώμα είναι υποχρεωτικό στα laptops." ] ;
+    sh:property [ sh:path prop:cpu_model ; sh:minCount 1 ; sh:message "Ο Επεξεργαστής (CPU) είναι υποχρεωτικός στα laptops." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_ram$" ] ; sh:qualifiedMinCount 1 ; sh:message "Η Μνήμη RAM είναι υποχρεωτική." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_storage$" ] ; sh:qualifiedMinCount 1 ; sh:message "Ο Αποθηκευτικός Χώρος είναι υποχρεωτικός." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_screen_size$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Μέγεθος Οθόνης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_width$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Πλάτος Ανάλυσης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_height$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Ύψος Ανάλυσης είναι υποχρεωτικό." ] .
 
+# 2. Smartphones
 eshop:SmartphoneShape a sh:NodeShape ;
     sh:targetClass pto:Smartphone ;
-    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Το κινητό δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
-    sh:property [ sh:path rdf:type ; sh:hasValue pto:Smartphone ; sh:message "Το κινητό δεν έχει δηλωθεί ως pto:Smartphone." ] ;
-    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Λείπει το λειτουργικό σύστημα του κινητού." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_storage$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει ο αποθηκευτικός χώρος του κινητού." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_battery$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει η χωρητικότητα μπαταρίας του κινητού." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_screen_size$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το μέγεθος οθόνης του κινητού." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_camera_main_mp$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει η κύρια κάμερα του κινητού." ] ;
-    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Λείπει το χρώμα του κινητού." ] ;
-    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Λείπει το έτος κυκλοφορίας του κινητού." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_weight$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το βάρος του κινητού." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_width$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το πλάτος ανάλυσης οθόνης του κινητού." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_height$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το ύψος ανάλυσης οθόνης του κινητού." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_camera_selfie_mp$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει η selfie κάμερα του κινητού." ] .
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Το Λειτουργικό Σύστημα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Η Χρονιά Κυκλοφορίας είναι υποχρεωτική." ] ;
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Το Χρώμα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_storage$" ] ; sh:qualifiedMinCount 1 ; sh:message "Ο Αποθηκευτικός Χώρος είναι υποχρεωτικός." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_screen_size$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Μέγεθος Οθόνης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_battery$" ] ; sh:qualifiedMinCount 1 ; sh:message "Η Μπαταρία είναι υποχρεωτική." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_weight$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Βάρος είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_camera_main_mp$" ] ; sh:qualifiedMinCount 1 ; sh:message "Η Κύρια Κάμερα είναι υποχρεωτική." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_camera_selfie_mp$" ] ; sh:qualifiedMinCount 1 ; sh:message "Η Selfie Κάμερα είναι υποχρεωτική." ] .
 
+# 3. Tablets
 eshop:TabletShape a sh:NodeShape ;
     sh:targetClass pto:Tablet_computer ;
-    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Το tablet δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
-    sh:property [ sh:path rdf:type ; sh:hasValue pto:Tablet_computer ; sh:message "Το tablet δεν έχει δηλωθεί ως pto:Tablet_computer." ] ;
-    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Λείπει το λειτουργικό σύστημα του tablet." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_ram$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει η μνήμη RAM του tablet." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_storage$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει ο αποθηκευτικός χώρος του tablet." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_screen_size$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το μέγεθος οθόνης του tablet." ] ;
-    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Λείπει το χρώμα του tablet." ] ;
-    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Λείπει το έτος κυκλοφορίας του tablet." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_weight$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το βάρος του tablet." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_width$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το πλάτος ανάλυσης οθόνης του tablet." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_height$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το ύψος ανάλυσης οθόνης του tablet." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_camera_main_mp$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει η κύρια κάμερα του tablet." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_camera_selfie_mp$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει η selfie κάμερα του tablet." ] .
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Το Λειτουργικό Σύστημα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Το Χρώμα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_ram$" ] ; sh:qualifiedMinCount 1 ; sh:message "Η Μνήμη RAM είναι υποχρεωτική." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_storage$" ] ; sh:qualifiedMinCount 1 ; sh:message "Ο Αποθηκευτικός Χώρος είναι υποχρεωτικός." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_screen_size$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Μέγεθος Οθόνης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_weight$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Βάρος είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_width$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Πλάτος Ανάλυσης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_height$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Ύψος Ανάλυσης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_camera_main_mp$" ] ; sh:qualifiedMinCount 1 ; sh:message "Η Κύρια Κάμερα είναι υποχρεωτική." ] .
 
+# 4. Televisions
 eshop:TelevisionShape a sh:NodeShape ;
     sh:targetClass pto:Television_set ;
-    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Η τηλεόραση δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
-    sh:property [ sh:path rdf:type ; sh:hasValue pto:Television_set ; sh:message "Η τηλεόραση δεν έχει δηλωθεί ως pto:Television_set." ] ;
-    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Λείπει το λειτουργικό σύστημα της τηλεόρασης." ] ;
-    sh:property [ sh:path prop:definition ; sh:minCount 1 ; sh:message "Λείπει η ευκρίνεια (definition) της τηλεόρασης." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_screen_size$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει το μέγεθος οθόνης της τηλεόρασης." ] ;
-    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_refresh_rate$" ] ; sh:qualifiedMinCount 1 ; sh:message "Λείπει ο ρυθμός ανανέωσης της τηλεόρασης." ] ;
-    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Λείπει το έτος κυκλοφορίας της τηλεόρασης." ] .
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Το Λειτουργικό Σύστημα (Smart) είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path schema:releaseDate ; sh:minCount 1 ; sh:message "Η Χρονιά Κυκλοφορίας είναι υποχρεωτική." ] ;
+    sh:property [ sh:path prop:definition ; sh:minCount 1 ; sh:message "Η Ανάλυση (π.χ. 4K) είναι υποχρεωτική." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_screen_size$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Μέγεθος Οθόνης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_refresh_rate$" ] ; sh:qualifiedMinCount 1 ; sh:message "Ο Ρυθμός Ανανέωσης είναι υποχρεωτικός." ] .
 
+# 5. Smartwatches
 eshop:SmartwatchShape a sh:NodeShape ;
     sh:targetClass pto:Smartwatch ;
-    sh:property [ sh:path rdf:type ; sh:hasValue gr:ProductOrService ; sh:message "Το smartwatch δεν έχει δηλωθεί ως gr:ProductOrService." ] ;
-    sh:property [ sh:path rdf:type ; sh:hasValue pto:Smartwatch ; sh:message "Το smartwatch δεν έχει δηλωθεί ως pto:Smartwatch." ] ;
-    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Λείπει το λειτουργικό σύστημα του smartwatch." ] ;
-    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Λείπει το χρώμα του smartwatch." ] .
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Το Λειτουργικό Σύστημα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Το Χρώμα είναι υποχρεωτικό." ] .
 
+# 6. Desktops
+eshop:DesktopShape a sh:NodeShape ;
+    sh:targetClass pto:Desktop_computer ;
+    sh:property [ sh:path prop:ram_type ; sh:minCount 1 ; sh:message "Ο Τύπος Μνήμης RAM είναι υποχρεωτικός." ] ;
+    sh:property [ sh:path prop:storage_type ; sh:minCount 1 ; sh:message "Ο Τύπος Δίσκου είναι υποχρεωτικός." ] ;
+    sh:property [ sh:path schema:operatingSystem ; sh:minCount 1 ; sh:message "Το Λειτουργικό Σύστημα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Το Χρώμα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path prop:use_case ; sh:minCount 1 ; sh:message "Η Χρήση είναι υποχρεωτική." ] ;
+    sh:property [ sh:path prop:cpu_model ; sh:minCount 1 ; sh:message "Ο Επεξεργαστής (CPU) είναι υποχρεωτικός." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_ram$" ] ; sh:qualifiedMinCount 1 ; sh:message "Η Μνήμη RAM είναι υποχρεωτική." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_storage$" ] ; sh:qualifiedMinCount 1 ; sh:message "Ο Αποθηκευτικός Χώρος είναι υποχρεωτικός." ] .
+
+# 7. Monitors
+eshop:MonitorShape a sh:NodeShape ;
+    sh:targetClass pto:Computer_monitor ;
+    sh:property [ sh:path prop:hdr_support ; sh:minCount 1 ; sh:message "Η υποστήριξη HDR είναι υποχρεωτική." ] ;
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Το Χρώμα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path prop:is_curved ; sh:minCount 1 ; sh:message "Το πεδίο Curved είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path prop:connection_type ; sh:minCount 1 ; sh:message "Ο Τύπος Σύνδεσης είναι υποχρεωτικός." ] ;
+    sh:property [ sh:path prop:is_ultrawide ; sh:minCount 1 ; sh:message "Το πεδίο Ultrawide είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_screen_size$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Μέγεθος Οθόνης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_width$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Πλάτος Ανάλυσης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_resolution_height$" ] ; sh:qualifiedMinCount 1 ; sh:message "Το Ύψος Ανάλυσης είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path gr:quantitativeProductOrServiceProperty ; sh:qualifiedValueShape [ sh:pattern "_refresh_rate$" ] ; sh:qualifiedMinCount 1 ; sh:message "Ο Ρυθμός Ανανέωσης είναι υποχρεωτικός." ] .
+
+# 8. Consoles
+eshop:ConsoleShape a sh:NodeShape ;
+    sh:targetClass pto:Game_console ;
+    sh:property [ sh:path prop:is_portable ; sh:minCount 1 ; sh:message "Το πεδίο Φορητή είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Το Χρώμα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path prop:console_platform ; sh:minCount 1 ; sh:message "Η Πλατφόρμα είναι υποχρεωτική." ] ;
+    sh:property [ sh:path prop:console_edition ; sh:minCount 1 ; sh:message "Η Έκδοση (Edition) είναι υποχρεωτική." ] .
+
+# 9. Headphones
+eshop:HeadphonesShape a sh:NodeShape ;
+    sh:targetClass pto:Headphones ;
+    sh:property [ sh:path schema:color ; sh:minCount 1 ; sh:message "Το Χρώμα είναι υποχρεωτικό." ] ;
+    sh:property [ sh:path prop:connection_type ; sh:minCount 1 ; sh:message "Ο Τύπος Σύνδεσης είναι υποχρεωτικός." ] ;
+    sh:property [ sh:path prop:headphone_type ; sh:minCount 1 ; sh:message "Ο Τύπος Ακουστικού είναι υποχρεωτικός." ] ;
+    sh:property [ sh:path prop:has_anc ; sh:minCount 1 ; sh:message "Το πεδίο ANC (Active Noise Cancellation) είναι υποχρεωτικό." ] .

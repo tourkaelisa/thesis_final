@@ -544,3 +544,356 @@ def get_personalized_recommendations(wishlist_uris, models, per_item=3):
             if i < len(picks):
                 recommended.append(picks[i])
     return recommended
+
+
+def build_desktop_recommendation_model(rdf_graph):
+    query = """
+    PREFIX gr: <http://purl.org/goodrelations/v1#>
+    PREFIX schema1: <http://schema.org/>
+    PREFIX pto: <http://www.productontology.org/id/>
+    PREFIX prop: <http://www.myeshop.gr/property/>
+
+    SELECT ?uri ?name ?price ?brand ?os ?cpu ?case_size ?gpu_memory ?ram_type ?storage_type ?use_case ?ram ?storage
+    WHERE {
+        ?uri a pto:Desktop_computer ;
+             gr:name ?name ;
+             schema1:price ?price ;
+             schema1:manufacturer ?brandURI .
+             
+        BIND(REPLACE(STR(?brandURI), "^.*Brand_", "") AS ?brand)
+        
+        OPTIONAL { ?uri schema1:operatingSystem ?os . }
+        OPTIONAL { ?uri prop:cpu_model ?cpu . }
+        OPTIONAL { ?uri prop:case_size ?case_size . }
+        OPTIONAL { ?uri prop:gpu_memory ?gpu_memory . }
+        OPTIONAL { ?uri prop:ram_type ?ram_type . }
+        OPTIONAL { ?uri prop:storage_type ?storage_type . }
+        OPTIONAL { ?uri prop:use_case ?use_case . }
+
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?ramNode . FILTER(CONTAINS(STR(?ramNode), "_ram")) ?ramNode gr:hasValueFloat ?ram . }
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?stNode . FILTER(CONTAINS(STR(?stNode), "_storage")) ?stNode gr:hasValueFloat ?storage . }
+    }
+    """
+    results = rdf_graph.query(query)
+
+    desktops_data = []
+    for row in results:
+        desktops_data.append({
+            "URI": str(row.uri),
+            "Name": str(row.name),
+            "Brand": str(row.brand),
+            "OS": str(row.os) if row.os else "Unknown",
+            "CPU": str(row.cpu) if row.cpu else "Unknown",
+            "CaseSize": str(row.case_size) if row.case_size else "Unknown",
+            "GPUMemory": str(row.gpu_memory) if row.gpu_memory else "Unknown",
+            "RAMType": str(row.ram_type) if row.ram_type else "Unknown",
+            "StorageType": str(row.storage_type) if row.storage_type else "Unknown",
+            "UseCase": str(row.use_case) if row.use_case else "Unknown",
+            "Price": float(row.price) if row.price else 0.0,
+            "RAM_GB": float(row.ram) if row.ram else 0.0,
+            "Storage_GB": float(row.storage) if row.storage else 0.0
+        })
+
+    df = pd.DataFrame(desktops_data)
+    df.set_index('URI', inplace=True)
+    
+    names_dict = df['Name'].to_dict()
+    df_features = df.drop(columns=['Name'])
+
+    categorical_cols = ['Brand', 'OS', 'CPU', 'CaseSize', 'GPUMemory', 'RAMType', 'StorageType', 'UseCase']
+    numerical_cols = ['Price', 'RAM_GB', 'Storage_GB']
+
+    df_categorical = pd.get_dummies(df_features[categorical_cols], dtype=float)
+    scaler = MinMaxScaler()
+    df_numerical = pd.DataFrame(
+        scaler.fit_transform(df_features[numerical_cols]), 
+        columns=numerical_cols, 
+        index=df_features.index
+    )
+    df_final = pd.concat([df_numerical, df_categorical], axis=1)
+
+    weights_numerical = {
+        'RAM_GB': 3.0, 'Storage_GB': 2.0, 'Price': 2.5
+    }
+
+    for col in df_final.columns:
+        if col in weights_numerical:
+            df_final[col] = df_final[col] * weights_numerical[col]
+        elif col.startswith('CPU_'):
+            df_final[col] = df_final[col] * 3.0
+        elif col.startswith('GPUMemory_'):
+            df_final[col] = df_final[col] * 2.0
+        elif col.startswith('UseCase_'):
+            df_final[col] = df_final[col] * 2.0
+        elif col.startswith('OS_') or col.startswith('Brand_'):
+            df_final[col] = df_final[col] * 1.5
+        elif col.startswith('RAMType_') or col.startswith('StorageType_') or col.startswith('CaseSize_'):
+            df_final[col] = df_final[col] * 1.0
+
+    similarity_matrix = cosine_similarity(df_final)
+    df_similarity = pd.DataFrame(similarity_matrix, index=df_final.index, columns=df_final.index)
+
+    return df_similarity, names_dict
+
+
+def build_monitor_recommendation_model(rdf_graph):
+    query = """
+    PREFIX gr: <http://purl.org/goodrelations/v1#>
+    PREFIX schema1: <http://schema.org/>
+    PREFIX pto: <http://www.productontology.org/id/>
+    PREFIX prop: <http://www.myeshop.gr/property/>
+
+    SELECT ?uri ?name ?price ?brand ?panel_type ?hdr_support ?is_curved ?is_ultrawide ?height_adjustment ?screen_size ?res_width ?res_height ?refresh_rate ?response_time ?vesa_width ?vesa_height
+    WHERE {
+        ?uri a pto:Computer_monitor ;
+             gr:name ?name ;
+             schema1:price ?price ;
+             schema1:manufacturer ?brandURI .
+             
+        BIND(REPLACE(STR(?brandURI), "^.*Brand_", "") AS ?brand)
+        
+        OPTIONAL { ?uri prop:panel_type ?panel_type . }
+        OPTIONAL { ?uri prop:hdr_support ?hdr_support . }
+        OPTIONAL { ?uri prop:is_curved ?is_curved . }
+        OPTIONAL { ?uri prop:is_ultrawide ?is_ultrawide . }
+        OPTIONAL { ?uri prop:height_adjustment ?height_adjustment . }
+
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?ssNode . FILTER(CONTAINS(STR(?ssNode), "_screen_size")) ?ssNode gr:hasValueFloat ?screen_size . }
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?rwNode . FILTER(CONTAINS(STR(?rwNode), "_resolution_width")) ?rwNode gr:hasValueFloat ?res_width . }
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?rhNode . FILTER(CONTAINS(STR(?rhNode), "_resolution_height")) ?rhNode gr:hasValueFloat ?res_height . }
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?rrNode . FILTER(CONTAINS(STR(?rrNode), "_refresh_rate")) ?rrNode gr:hasValueFloat ?refresh_rate . }
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?rtNode . FILTER(CONTAINS(STR(?rtNode), "_response_time")) ?rtNode gr:hasValueFloat ?response_time . }
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?vwNode . FILTER(CONTAINS(STR(?vwNode), "_vesa_width")) ?vwNode gr:hasValueFloat ?vesa_width . }
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?vhNode . FILTER(CONTAINS(STR(?vhNode), "_vesa_height")) ?vhNode gr:hasValueFloat ?vesa_height . }
+    }
+    """
+    results = rdf_graph.query(query)
+
+    monitors_data = []
+    for row in results:
+        monitors_data.append({
+            "URI": str(row.uri),
+            "Name": str(row.name),
+            "Brand": str(row.brand),
+            "PanelType": str(row.panel_type) if row.panel_type else "Unknown",
+            "HDR": str(row.hdr_support) if row.hdr_support else "Unknown",
+            "Curved": str(row.is_curved) if row.is_curved else "Unknown",
+            "Ultrawide": str(row.is_ultrawide) if row.is_ultrawide else "Unknown",
+            "HeightAdjust": str(row.height_adjustment) if row.height_adjustment else "Unknown",
+            "Price": float(row.price) if row.price else 0.0,
+            "Screen_Size": float(row.screen_size) if row.screen_size else 0.0,
+            "Res_Width": float(row.res_width) if row.res_width else 0.0,
+            "Res_Height": float(row.res_height) if row.res_height else 0.0,
+            "Refresh_Rate": float(row.refresh_rate) if row.refresh_rate else 0.0,
+            "Response_Time": float(row.response_time) if row.response_time else 0.0,
+            "Vesa_W": float(row.vesa_width) if row.vesa_width else 0.0,
+            "Vesa_H": float(row.vesa_height) if row.vesa_height else 0.0
+        })
+
+    df = pd.DataFrame(monitors_data)
+    df.set_index('URI', inplace=True)
+    
+    names_dict = df['Name'].to_dict()
+    df_features = df.drop(columns=['Name'])
+
+    categorical_cols = ['Brand', 'PanelType', 'HDR', 'Curved', 'Ultrawide', 'HeightAdjust']
+    numerical_cols = ['Price', 'Screen_Size', 'Res_Width', 'Res_Height', 'Refresh_Rate', 'Response_Time', 'Vesa_W', 'Vesa_H']
+
+    df_categorical = pd.get_dummies(df_features[categorical_cols], dtype=float)
+    scaler = MinMaxScaler()
+    df_numerical = pd.DataFrame(
+        scaler.fit_transform(df_features[numerical_cols]), 
+        columns=numerical_cols, 
+        index=df_features.index
+    )
+    df_final = pd.concat([df_numerical, df_categorical], axis=1)
+
+    weights_numerical = {
+        'Screen_Size': 3.0, 'Res_Width': 2.5, 'Res_Height': 2.5,
+        'Refresh_Rate': 2.5, 'Price': 2.0, 'Response_Time': 1.5,
+        'Vesa_W': 0.5, 'Vesa_H': 0.5
+    }
+
+    for col in df_final.columns:
+        if col in weights_numerical:
+            df_final[col] = df_final[col] * weights_numerical[col]
+        elif col.startswith('PanelType_'):
+            df_final[col] = df_final[col] * 2.0
+        elif col.startswith('Brand_'):
+            df_final[col] = df_final[col] * 1.5
+        elif col.startswith('HDR_') or col.startswith('Curved_') or col.startswith('Ultrawide_') or col.startswith('HeightAdjust_'):
+            df_final[col] = df_final[col] * 1.0
+
+    similarity_matrix = cosine_similarity(df_final)
+    df_similarity = pd.DataFrame(similarity_matrix, index=df_final.index, columns=df_final.index)
+
+    return df_similarity, names_dict
+
+
+def build_console_recommendation_model(rdf_graph):
+    query = """
+    PREFIX gr: <http://purl.org/goodrelations/v1#>
+    PREFIX schema1: <http://schema.org/>
+    PREFIX pto: <http://www.productontology.org/id/>
+    PREFIX prop: <http://www.myeshop.gr/property/>
+
+    SELECT ?uri ?name ?price ?brand ?console_platform ?console_edition ?console_bundle ?is_portable ?storage ?ram
+    WHERE {
+        ?uri a pto:Game_console ;
+             gr:name ?name ;
+             schema1:price ?price ;
+             schema1:manufacturer ?brandURI .
+             
+        BIND(REPLACE(STR(?brandURI), "^.*Brand_", "") AS ?brand)
+        
+        OPTIONAL { ?uri prop:console_platform ?console_platform . }
+        OPTIONAL { ?uri prop:console_edition ?console_edition . }
+        OPTIONAL { ?uri prop:console_bundle ?console_bundle . }
+        OPTIONAL { ?uri prop:is_portable ?is_portable . }
+
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?stNode . FILTER(CONTAINS(STR(?stNode), "_storage")) ?stNode gr:hasValueFloat ?storage . }
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?rNode . FILTER(CONTAINS(STR(?rNode), "_ram")) ?rNode gr:hasValueFloat ?ram . }
+    }
+    """
+    results = rdf_graph.query(query)
+
+    consoles_data = []
+    for row in results:
+        consoles_data.append({
+            "URI": str(row.uri),
+            "Name": str(row.name),
+            "Brand": str(row.brand),
+            "Platform": str(row.console_platform) if row.console_platform else "Unknown",
+            "Edition": str(row.console_edition) if row.console_edition else "Unknown",
+            "Bundle": str(row.console_bundle) if row.console_bundle else "Unknown",
+            "Portable": str(row.is_portable) if row.is_portable else "Unknown",
+            "Price": float(row.price) if row.price else 0.0,
+            "Storage": float(row.storage) if row.storage else 0.0,
+            "RAM": float(row.ram) if row.ram else 0.0
+        })
+
+    df = pd.DataFrame(consoles_data)
+    df.set_index('URI', inplace=True)
+    
+    names_dict = df['Name'].to_dict()
+    df_features = df.drop(columns=['Name'])
+
+    categorical_cols = ['Brand', 'Platform', 'Edition', 'Bundle', 'Portable']
+    numerical_cols = ['Price', 'Storage', 'RAM']
+
+    df_categorical = pd.get_dummies(df_features[categorical_cols], dtype=float)
+    scaler = MinMaxScaler()
+    df_numerical = pd.DataFrame(
+        scaler.fit_transform(df_features[numerical_cols]), 
+        columns=numerical_cols, 
+        index=df_features.index
+    )
+    df_final = pd.concat([df_numerical, df_categorical], axis=1)
+
+    weights_numerical = {
+        'Price': 2.0, 'Storage': 2.0, 'RAM': 1.0
+    }
+
+    for col in df_final.columns:
+        if col in weights_numerical:
+            df_final[col] = df_final[col] * weights_numerical[col]
+        elif col.startswith('Platform_'):
+            df_final[col] = df_final[col] * 5.0
+        elif col.startswith('Edition_'):
+            df_final[col] = df_final[col] * 3.0
+        elif col.startswith('Portable_'):
+            df_final[col] = df_final[col] * 2.0
+        elif col.startswith('Bundle_'):
+            df_final[col] = df_final[col] * 1.5
+        elif col.startswith('Brand_'):
+            df_final[col] = df_final[col] * 1.0
+
+    similarity_matrix = cosine_similarity(df_final)
+    df_similarity = pd.DataFrame(similarity_matrix, index=df_final.index, columns=df_final.index)
+
+    return df_similarity, names_dict
+
+
+def build_headphone_recommendation_model(rdf_graph):
+    query = """
+    PREFIX gr: <http://purl.org/goodrelations/v1#>
+    PREFIX schema1: <http://schema.org/>
+    PREFIX pto: <http://www.productontology.org/id/>
+    PREFIX prop: <http://www.myeshop.gr/property/>
+
+    SELECT ?uri ?name ?price ?brand ?color ?headphone_type ?connection ?use_case ?has_anc ?battery ?weight
+    WHERE {
+        ?uri a pto:Headphones ;
+             gr:name ?name ;
+             schema1:price ?price ;
+             schema1:manufacturer ?brandURI .
+             
+        BIND(REPLACE(STR(?brandURI), "^.*Brand_", "") AS ?brand)
+        
+        OPTIONAL { ?uri schema1:color ?color . }
+        OPTIONAL { ?uri prop:headphone_type ?headphone_type . }
+        OPTIONAL { ?uri prop:connection ?connection . }
+        OPTIONAL { ?uri prop:use_case ?use_case . }
+        OPTIONAL { ?uri prop:has_anc ?has_anc . }
+
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?bNode . FILTER(CONTAINS(STR(?bNode), "_battery_hours")) ?bNode gr:hasValueFloat ?battery . }
+        OPTIONAL { ?uri gr:quantitativeProductOrServiceProperty ?wNode . FILTER(CONTAINS(STR(?wNode), "_weight")) ?wNode gr:hasValueFloat ?weight . }
+    }
+    """
+    results = rdf_graph.query(query)
+
+    headphones_data = []
+    for row in results:
+        headphones_data.append({
+            "URI": str(row.uri),
+            "Name": str(row.name),
+            "Brand": str(row.brand),
+            "Color": str(row.color) if row.color else "Unknown",
+            "Type": str(row.headphone_type) if row.headphone_type else "Unknown",
+            "Connection": str(row.connection) if row.connection else "Unknown",
+            "UseCase": str(row.use_case) if row.use_case else "Unknown",
+            "ANC": str(row.has_anc) if row.has_anc else "Unknown",
+            "Price": float(row.price) if row.price else 0.0,
+            "Battery": float(row.battery) if row.battery else 0.0,
+            "Weight": float(row.weight) if row.weight else 0.0
+        })
+
+    df = pd.DataFrame(headphones_data)
+    df.set_index('URI', inplace=True)
+    
+    names_dict = df['Name'].to_dict()
+    df_features = df.drop(columns=['Name'])
+
+    categorical_cols = ['Brand', 'Color', 'Type', 'Connection', 'UseCase', 'ANC']
+    numerical_cols = ['Price', 'Battery', 'Weight']
+
+    df_categorical = pd.get_dummies(df_features[categorical_cols], dtype=float)
+    scaler = MinMaxScaler()
+    df_numerical = pd.DataFrame(
+        scaler.fit_transform(df_features[numerical_cols]), 
+        columns=numerical_cols, 
+        index=df_features.index
+    )
+    df_final = pd.concat([df_numerical, df_categorical], axis=1)
+
+    weights_numerical = {
+        'Price': 2.0, 'Battery': 1.5, 'Weight': 1.0
+    }
+
+    for col in df_final.columns:
+        if col in weights_numerical:
+            df_final[col] = df_final[col] * weights_numerical[col]
+        elif col.startswith('Type_') or col.startswith('Connection_'):
+            df_final[col] = df_final[col] * 3.0
+        elif col.startswith('UseCase_'):
+            df_final[col] = df_final[col] * 2.5
+        elif col.startswith('Brand_') or col.startswith('ANC_'):
+            df_final[col] = df_final[col] * 2.0
+        elif col.startswith('Color_'):
+            df_final[col] = df_final[col] * 0.5
+
+    similarity_matrix = cosine_similarity(df_final)
+    df_similarity = pd.DataFrame(similarity_matrix, index=df_final.index, columns=df_final.index)
+
+    return df_similarity, names_dict
+

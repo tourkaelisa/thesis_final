@@ -37,7 +37,11 @@ export class App implements AfterViewInit {
     { label: 'Κινητά', route: '/mobiles' },
     { label: 'Tablets', route: '/tablets' },
     { label: 'Τηλεοράσεις', route: '/tvs' },
-    { label: 'Smartwatches', route: '/smartwatches' }
+    { label: 'Smartwatches', route: '/smartwatches' },
+    { label: 'Σταθεροί Υπολογιστές', route: '/desktops' },
+    { label: 'Οθόνες', route: '/monitors' },
+    { label: 'Ακουστικά', route: '/headphones' },
+    { label: 'Κονσόλες', route: '/consoles' }
   ];
 
   constructor() {

@@ -83,12 +83,49 @@ if product_urls:
                 continue
 
             # Τιμή
-            price_tag = soup.find("meta", attrs={"name": "twitter:data1"})
-            price = price_tag["content"].replace(" €", "").replace(",", ".") if price_tag else "0.0"
+            #price_tag = soup.find("meta", attrs={"name": "twitter:data1"})
+            #price = price_tag["content"].replace(" €", "").replace(",", ".") if price_tag else "0.0"
+            price = "0.0"
             
+            # Plan A: Ψάχνει το παλιό twitter tag
+            price_tag_1 = soup.find("meta", attrs={"name": "twitter:data1"})
+            # Plan B: Ψάχνει το νέο στάνταρ SEO tag (product:price:amount)
+            price_tag_2 = soup.find("meta", property="product:price:amount")
+            # Plan C: Ψάχνει το κλασικό tag (itemprop="price")
+            price_tag_3 = soup.find(attrs={"itemprop": "price"})
+            
+            if price_tag_1 and "content" in price_tag_1.attrs:
+                price = price_tag_1["content"].replace(" €", "").replace(",", ".")
+            elif price_tag_2 and "content" in price_tag_2.attrs:
+                price = price_tag_2["content"].replace(",", ".")
+            elif price_tag_3 and "content" in price_tag_3.attrs:
+                price = price_tag_3["content"].replace(",", ".")
+
+            # Κατηγορία
+            category = "N/A"
+            
+            # Plan A: Το παλιό meta tag
+            cat_tag_1 = soup.find("meta", itemprop="category")
+            # Plan B: Εναλλακτικό meta tag
+            cat_tag_2 = soup.find("meta", property="product:category")
+            
+            if cat_tag_1 and "content" in cat_tag_1.attrs:
+                category = cat_tag_1["content"]
+            elif cat_tag_2 and "content" in cat_tag_2.attrs:
+                category = cat_tag_2["content"]
+            else:
+                # Plan C: Διάβασμα από τα Breadcrumbs (τη διαδρομή σελίδας)
+                # Βρίσκει όλα τα στοιχεία της διαδρομής
+                breadcrumbs = soup.find_all("li", itemprop="itemListElement")
+                if breadcrumbs and len(breadcrumbs) >= 2:
+                    # Το τελευταίο [ -1 ] είναι το όνομα του προϊόντος, το προτελευταίο [ -2 ] είναι η κατηγορία
+                    category = breadcrumbs[-2].text.strip()
+                elif breadcrumbs:
+                    category = breadcrumbs[-1].text.strip()
+
             # Κατηγορία & Εικόνα
-            cat_tag = soup.find("meta", itemprop="category")
-            category = cat_tag["content"] if cat_tag else "N/A"
+            #cat_tag = soup.find("meta", itemprop="category")
+            #category = cat_tag["content"] if cat_tag else "N/A"
             img_tag = soup.find("meta", property="og:image")
             image = img_tag["content"] if img_tag else ""
 

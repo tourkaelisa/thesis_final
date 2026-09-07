@@ -8,9 +8,10 @@ SCHEMA = Namespace("http://schema.org/")
 OWL = Namespace("http://www.w3.org/2002/07/owl#")
 ESHOP = Namespace("http://www.myeshop.gr/resource/")
 
-# Σύνδεση με τον Server της DBpedia με Timeout 10 δευτερολέπτων
-sparql = SPARQLWrapper("http://dbpedia.org/sparql")
-sparql.setTimeout(10)
+# Σύνδεση με τον Server της DBpedia με Timeout 60 δευτερολέπτων
+sparql = SPARQLWrapper("https://dbpedia.org/sparql")
+sparql.setTimeout(60)
+sparql.agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 
 def enrich_graph():
     print("Φόρτωση του υπάρχοντος Γράφου...")
@@ -38,11 +39,13 @@ def enrich_graph():
         "Samsung": "http://dbpedia.org/resource/Samsung_Electronics",
         "Lenovo": "http://dbpedia.org/resource/Lenovo",
         "Sony": "http://dbpedia.org/resource/Sony",
+        "Microsoft": "http://dbpedia.org/resource/Microsoft",
+        "Nintendo": "http://dbpedia.org/resource/Nintendo",
         "LG": "http://dbpedia.org/resource/LG_Electronics",
         "Garmin": "http://dbpedia.org/resource/Garmin",
         "Xiaomi": "http://dbpedia.org/resource/Xiaomi",
         "Huawei": "http://dbpedia.org/resource/Huawei",
-        "HP": "http://dbpedia.org/resource/Hewlett-Packard",
+        "HP": "http://dbpedia.org/resource/HP_Inc.",
         "Asus": "http://dbpedia.org/resource/Asus",
         "Dell": "http://dbpedia.org/resource/Dell",
         "Motorola": "http://dbpedia.org/resource/Motorola",
@@ -58,7 +61,29 @@ def enrich_graph():
         "Withings": "http://dbpedia.org/resource/Withings",
         "Tesla": "http://dbpedia.org/resource/Tesla,_Inc.",
         "Nothing": "http://dbpedia.org/resource/Nothing_(company)",
-        "BlackView": "http://dbpedia.org/resource/Blackview"
+        "BlackView": "http://dbpedia.org/resource/Blackview",
+        "AOC": "http://dbpedia.org/resource/AOC_International",
+        "Philips": "http://dbpedia.org/resource/Philips",
+        "JBL": "http://dbpedia.org/resource/JBL",
+        "Marshall": "http://dbpedia.org/resource/Marshall_Amplification",
+        "BeyerDynamic": "http://dbpedia.org/resource/Beyerdynamic",
+        "Soundcore": "http://dbpedia.org/resource/Anker_Innovations",
+        "Anker": "http://dbpedia.org/resource/Anker_Innovations",
+        "Sennheiser": "http://dbpedia.org/resource/Sennheiser",
+        "Audio-Technica": "http://dbpedia.org/resource/Audio-Technica",
+        "Audio": "http://dbpedia.org/resource/Audio-Technica",
+        "AirPods": "http://dbpedia.org/resource/Apple_Inc.",
+        "Edifier": "http://dbpedia.org/resource/Edifier",
+        "Aiwa": "http://dbpedia.org/resource/Aiwa",
+        "Skullcandy": "http://dbpedia.org/resource/Skullcandy",
+        "Creative": "http://dbpedia.org/resource/Creative_Technology",
+        "Beats": "http://dbpedia.org/resource/Beats_Electronics",
+        "Bose": "http://dbpedia.org/resource/Bose_Corporation",
+        "Panasonic": "http://dbpedia.org/resource/Panasonic",
+        "Mackie": "http://dbpedia.org/resource/Mackie",
+        "AKG": "http://dbpedia.org/resource/AKG_Acoustics",
+        "Pioneer": "http://dbpedia.org/resource/Pioneer_Corporation",
+        "Koss": "http://dbpedia.org/resource/Koss_Corporation"
     }
     
     # 3. Εμπλουτισμός από DBpedia

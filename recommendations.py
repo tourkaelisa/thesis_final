@@ -14,6 +14,10 @@ def build_models(rdf_graph):
     models["tablets"] = engine.build_tablet_recommendation_model(rdf_graph)
     models["tvs"] = engine.build_tv_recommendation_model(rdf_graph)
     models["smartwatches"] = engine.build_smartwatch_recommendation_model(rdf_graph)
+    models["desktops"] = engine.build_desktop_recommendation_model(rdf_graph)
+    models["monitors"] = engine.build_monitor_recommendation_model(rdf_graph)
+    models["consoles"] = engine.build_console_recommendation_model(rdf_graph)
+    models["headphones"] = engine.build_headphone_recommendation_model(rdf_graph)
 
 
 def get_similar_products(product_uri):

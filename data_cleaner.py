@@ -6,13 +6,47 @@ INPUT_DIR = 'data/raw_data'
 OUTPUT_DIR = 'data/cleaned_data'
 
 MAPPINGS = {
-    "screen_size": ["Οθόνη - Διαγώνιος", "Οθόνη - Μέγεθος", "Εικόνα - Διαγώνιος", "Οθόνη - Μέγεθος Οθόνης", "Τεχνικά Χαρακτηριστικά - Μέγεθος Οθόνης", "Βασικά Χαρακτηριστικά - Μέγεθος Οθόνης"],
-    "ram": ["Μνήμη RAM - Χωρητικότητα Μνήμης", "Μνήμη - RAM", "Επεξεργαστής & Μνήμη - Μνήμη RAM", "Βασικά Χαρακτηριστικά - Μνήμη RAM"],
-    "storage": ["Σκληρός Δίσκος - Χωρητικότητα Σκληρού Δίσκου", "Μνήμη - Χωρητικότητα", "Επεξεργαστής & Μνήμη - Χωρητικότητα", "Βασικά Χαρακτηριστικά - Χωρητικότητα"],
+    "screen_size": ["Οθόνη - Διαγώνιος", "Οθόνη - Μέγεθος", "Εικόνα - Διαγώνιος", "Οθόνη - Μέγεθος Οθόνης", "Τεχνικά Χαρακτηριστικά - Μέγεθος Οθόνης", "Βασικά Χαρακτηριστικά - Μέγεθος Οθόνης", "Βασικά Χαρακτηριστικά - Διαγώνιος"],
+    "ram": ["Μνήμη RAM - Χωρητικότητα Μνήμης", "Μνήμη - RAM", "Επεξεργαστής & Μνήμη - Μνήμη RAM", "Βασικά Χαρακτηριστικά - Μνήμη RAM", "Μνήμη RAM - Μέγεθος"],
+    "storage": [
+        "Οθόνη & Γραφικά - Χωρητικότητα",
+        "Οθόνη & Γραφικά - Αποθηκευτικός Χώρος",
+        "Αποθηκευτικός Χώρος - Χωρητικότητα Δίσκου",
+        "Αποθηκευτικός Χώρος - Χωρητικότητα",
+        "Top Specs - Χωρητικότητα",
+        "Σκληρός Δίσκος - Χωρητικότητα Σκληρού Δίσκου", 
+        "Μνήμη - Χωρητικότητα", 
+        "Επεξεργαστής & Μνήμη - Χωρητικότητα", 
+        "Βασικά Χαρακτηριστικά - Χωρητικότητα", 
+        "Σκληρός Δίσκος - Χωρητικότητα",
+        "Γενικά - Μέγεθος Δίσκου"
+    ],
     "weight": ["Γενικά Χαρακτηριστικά - Βάρος", "Βασικά Χαρακτηριστικά - Βάρος", "Τεχνικά Χαρακτηριστικά - Βάρος", "Διαστάσεις με Βάση - Βάρος", "Διαστάσεις χωρίς Βάση - Βάρος", "Γενικά - Βάρος"],
-    "refresh_rate": ["Οθόνη - Ρυθμός Ανανέωσης", "Εικόνα - Ρυθμός Ανανέωσης"],
+    "refresh_rate": ["Οθόνη - Ρυθμός Ανανέωσης", "Εικόνα - Ρυθμός Ανανέωσης", "Βασικά Χαρακτηριστικά - Ρυθμός Ανανέωσης"],
     "battery": ["Μπαταρία - Χωρητικότητα", "Χωρητικότητα Μπαταρίας", "Τροφοδοσία - Χωρητικότητα", "Βασικά Χαρακτηριστικά - Χωρητικότητα Μπαταρίας", "Μπαταρία & Φόρτιση - Χωρητικότητα"],
-    "screen_resolution": ["Οθόνη - Ανάλυση", "Ανάλυση Οθόνης", "Οθόνη - Ανάλυση Οθόνης", "Εικόνα - Ανάλυση", "Τεχνικά Χαρακτηριστικά - Ανάλυση Οθόνης"]
+    "battery_hours": ["Γενικά - Χρόνος Λειτουργίας", "Μπαταρία - Χρόνος Λειτουργίας", "Μπαταρία - Διάρκεια Μπαταρίας", "Μπαταρία - Μέγιστος Χρόνος Μπαταρίας"],
+    "screen_resolution": ["Οθόνη - Ανάλυση", "Ανάλυση Οθόνης", "Οθόνη - Ανάλυση Οθόνης", "Εικόνα - Ανάλυση", "Τεχνικά Χαρακτηριστικά - Ανάλυση Οθόνης", "Βασικά Χαρακτηριστικά - Ανάλυση"],
+    "panel": ["Βασικά Χαρακτηριστικά - Panel", "Οθόνη - Panel"],
+    "response_time": ["Βασικά Χαρακτηριστικά - Χρόνος Απόκρισης (GTG)", "Βασικά Χαρακτηριστικά - Χρόνος Απόκρισης", "Οθόνη - Χρόνος Απόκρισης"],
+    "hdr": ["Βασικά Χαρακτηριστικά - HDR", "Οθόνη - HDR"],
+    "curved": ["Βασικά Χαρακτηριστικά - Curved", "Οθόνη - Curved"],
+    "connection_type": ["Συνδεσιμότητα - Ασύρματες Συνδέσεις", "Συνδεσιμότητα - Ενσύρματες Συνδέσεις", "Top Specs - Συνδεσιμότητα", "Συνδεσιμότητα - Τύπος Σύνδεσης", "Συνδεσιμότητα - Θύρες"],
+    "ultrawide": ["Βασικά Χαρακτηριστικά - UltraWide", "Οθόνη - UltraWide"],
+    "height_adjust": ["Εργονομία Βάσης - Ρύθμιση Ύψους"],
+    "vesa_mount": ["Εργονομία Βάσης - Δυνατότητα Επιτοίχιας Τοποθέτησης (Vesa)"],
+    "headphone_type": ["Γενικά - Τύπος"],
+    "noise_cancellation": ["Δυνατότητες & Λειτουργίες - Noise Cancellation", "Top Specs - Noise Cancellation"],
+    "use_case": ["Γενικά - Χρήση"],
+    "desktop_use": ["Γενικά - Προτεινόμενη Χρήση"],
+    "os": ["Λογισμικό - Λειτουργικό Σύστημα"],
+    "ram_type": ["Μνήμη RAM - Τύπος"],
+    "storage_type": ["Σκληρός Δίσκος - Τύπος"],
+    "gpu_memory": ["Κάρτα Γραφικών - Μέγεθος Μνήμης"],
+    "console_platform": ["Γενικά - Πλατφόρμα"],
+    "console_edition": ["Γενικά - Έκδοση"],
+    "console_portable": ["Γενικά - Φορητή"],
+    "console_bundle": ["Γενικά - Πακέτο"],
+    "cpu_frequency": ["Επεξεργαστής - Συχνότητα"]
 }
 
 if not os.path.exists(OUTPUT_DIR):
@@ -66,7 +100,23 @@ def clean_specs(specs):
                 cleaned["weight_unit"] = "kg" if "kg" in raw else "gr"
             break
 
-    # 5. Ρυθμός Ανανέωσης
+    # 5. Μπαταρία
+    for key in MAPPINGS["battery"]:
+        if key in cleaned:
+            num = extract_number(cleaned.pop(key))
+            if num is not None:
+                cleaned["battery_num"], cleaned["battery_unit"] = num, "mAh"
+            break
+            
+    # 5b. Μπαταρία (ώρες)
+    for key in MAPPINGS["battery_hours"]:
+        if key in cleaned:
+            num = extract_number(cleaned.pop(key), as_float=True)
+            if num is not None:
+                cleaned["battery_hours_num"], cleaned["battery_hours_unit"] = num, "hrs"
+            break
+
+    # 6. Ρυθμός Ανανέωσης
     for key in MAPPINGS["refresh_rate"]:
         if key in cleaned:
             raw = str(cleaned.pop(key)).split('/')[-1]
@@ -104,10 +154,151 @@ def clean_specs(specs):
                 cleaned["resolution_height_num"], cleaned["resolution_height_unit"] = int(match.group(2)), "px"
             else:
                 cleaned["screen_resolution_text"] = raw_val.replace('pixels', '').replace('px', '').strip()
+            
+    # 9. Panel
+    for key in MAPPINGS["panel"]:
+        if key in cleaned:
+            cleaned["panel_type"] = cleaned.pop(key)
             break
 
-    # 9. Booleans // δεν τα χω φορτωσει ακομα στο graphDB
+    # 10. Response Time
+    for key in MAPPINGS["response_time"]:
+        if key in cleaned:
+            num = extract_number(cleaned.pop(key), as_float=True)
+            if num is not None:
+                cleaned["response_time_num"], cleaned["response_time_unit"] = num, "ms"
+            break
+    
+    # 11. HDR
+    for key in MAPPINGS["hdr"]:
+        if key in cleaned:
+            cleaned["hdr"] = cleaned.pop(key)
+            break
+
+    # 12. Curved
+    for key in MAPPINGS["curved"]:
+        if key in cleaned:
+            cleaned["curved"] = cleaned.pop(key)
+            break   
+    
+    # 13. Connection Type
+    for key in MAPPINGS["connection_type"]:
+        if key in cleaned:
+            cleaned["connection_type_text"] = cleaned.pop(key)
+            break
+
+    # 14. UltraWide
+    for key in MAPPINGS["ultrawide"]:
+        if key in cleaned:
+            cleaned["ultrawide"] = cleaned.pop(key)
+            break
+
+    # 15. Height Adjust)
+    for key in MAPPINGS["height_adjust"]:
+        if key in cleaned:
+            cleaned["height_adjust"] = cleaned.pop(key)
+            break
+
+    # 16. Vesa 
+    for key in MAPPINGS.get("vesa_mount", []):
+        if key in cleaned:
+            raw_val = str(cleaned.pop(key))
+            match = re.search(r'(\d+)\s*[xX*]\s*(\d+)', raw_val)
+            if match:
+                cleaned["vesa_width_num"], cleaned["vesa_width_unit"] = int(match.group(1)), "mm"
+                cleaned["vesa_height_num"], cleaned["vesa_height_unit"] = int(match.group(2)), "mm"
+            break
+
+    # 17. Booleans // δεν τα χω φορτωσει ακομα στο graphDB
     cleaned = {k: (True if v == "Ναι" else False if v == "Όχι" else v) for k, v in cleaned.items()}
+
+    # 18. Ακουστικά - Είδος
+    for key in MAPPINGS.get("headphone_type", []):
+        if key in cleaned:
+            cleaned["headphone_type_text"] = cleaned.pop(key)
+            break
+
+    # 19. Ακουστικά - Noise Cancellation (ANC)
+    for key in MAPPINGS.get("noise_cancellation", []):
+        if key in cleaned:
+            val = str(cleaned.pop(key)).lower()
+            cleaned["has_anc"] = True if ("ναι" in val or "active" in val) else False
+            break
+
+    # 21. Ακουστικά - Χρήση
+    for key in MAPPINGS.get("use_case", []):
+        if key in cleaned:
+            cleaned["use_case_text"] = cleaned.pop(key)
+            break
+
+    # 22. Desktops - Προτεινόμενη Χρήση
+    for key in MAPPINGS.get("desktop_use", []):
+        if key in cleaned:
+            cleaned["desktop_use_text"] = cleaned.pop(key)
+            break
+
+    # 23. Desktops - OS / GPU / RAM_Type / Storage_Type / GPU_Memory
+    for key in MAPPINGS.get("os", []):
+        if key in cleaned:
+            cleaned["os_name"] = cleaned.pop(key)
+            break
+            
+    for key in MAPPINGS.get("ram_type", []):
+        if key in cleaned:
+            cleaned["ram_type"] = cleaned.pop(key)
+            break
+            
+    for key in MAPPINGS.get("storage_type", []):
+        if key in cleaned:
+            cleaned["storage_type"] = cleaned.pop(key)
+            break
+            
+    for key in MAPPINGS.get("gpu_memory", []):
+        if key in cleaned:
+            cleaned["gpu_memory"] = cleaned.pop(key)
+            break
+
+    # 25. Desktops - Μέγεθος Θήκης
+    case_size = None
+    for k in list(cleaned.keys()):
+        if k.startswith("Μέγεθος Θήκης"):
+            if str(cleaned[k]).lower() == "ναι":
+                case_size = k.replace("Μέγεθος Θήκης - ", "").strip()
+            cleaned.pop(k)
+    if case_size:
+        cleaned["case_size_text"] = case_size
+        
+    # 26. Consoles
+    for key in MAPPINGS.get("console_platform", []):
+        if key in cleaned:
+            cleaned["console_platform"] = cleaned.pop(key)
+            break
+            
+    for key in MAPPINGS.get("console_edition", []):
+        if key in cleaned:
+            cleaned["console_edition"] = cleaned.pop(key)
+            break
+            
+    for key in MAPPINGS.get("console_portable", []):
+        if key in cleaned:
+            val = cleaned.pop(key)
+            if isinstance(val, bool):
+                cleaned["is_portable"] = val
+            else:
+                cleaned["is_portable"] = True if "ναι" in str(val).lower() else False
+            break
+
+    for key in MAPPINGS.get("console_bundle", []):
+        if key in cleaned:
+            cleaned["console_bundle"] = cleaned.pop(key)
+            break
+
+    for key in MAPPINGS.get("cpu_frequency", []):
+        if key in cleaned:
+            num = extract_number(cleaned.pop(key), as_float=True)
+            if num is not None:
+                cleaned["cpu_frequency_num"], cleaned["cpu_frequency_unit"] = num, "GHz"
+            break
 
     return cleaned
 

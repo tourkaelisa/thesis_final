@@ -14,6 +14,10 @@ const CATEGORY_LABELS: { [key: string]: string } = {
   tablets: 'Tablets',
   tvs: 'Τηλεοράσεις',
   smartwatches: 'Smartwatches',
+  desktops: 'Σταθεροί Υπολογιστές',
+  monitors: 'Οθόνες',
+  headphones: 'Ακουστικά',
+  consoles: 'Κονσόλες',
 };
 
 interface QuantGroup {
@@ -64,9 +68,30 @@ export class Category implements OnInit {
     camera_selfie_mp: 'Selfie Κάμερα (MP)',
     refresh_rate:     'Ρυθμός Ανανέωσης (Hz)',
     weight:           'Βάρος (kg)',
+    ram_type:         'Τύπος RAM',
+    storage_type:     'Τύπος Δίσκου',
+    console_platform: 'Πλατφόρμα',
+    console_edition:  'Έκδοση',
+    console_bundle:   'Πακέτο',
+    use_case:         'Χρήση',
+    headphone_type:   'Είδος',
+    connection_type:  'Συνδεσιμότητα',
+    gpu_memory:       'Μνήμη Κάρτας',
+    case_size:        'Μέγεθος Κουτιού',
+    is_portable:      'Φορητή',
+    has_anc:          'Active Noise Cancellation',
+    cpu_frequency:    'Συχνότητα Επεξεργαστή (GHz)',
+    hdr_support:      'Υποστήριξη HDR',
+    height_adjustment: 'Ρύθμιση Ύψους',
+    is_curved:        'Curved',
+    is_ultrawide:     'Ultrawide',
+    panel_type:       'Τύπος Panel',
+    response_time:    'Χρόνος Απόκρισης (ms)',
+    vesa_mount:       'Βάση VESA (mm)',
+    battery_hours:    'Μπαταρία (ώρες)',
   };
 
-  private readonly EXCLUDED_PROPS = new Set(['resolution_width', 'resolution_height']);
+  private readonly EXCLUDED_PROPS = new Set(['resolution_width', 'resolution_height', 'vesa_width', 'vesa_height']);
 
   // Κατηγορίες όπου το βάρος μετριέται σε γραμμάρια (αλλιώς σε κιλά).
   private readonly WEIGHT_GRAMS_CATEGORIES = new Set(['mobiles', 'tablets', 'smartwatches']);

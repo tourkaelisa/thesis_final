@@ -1,0 +1,441 @@
+[
+    {
+        "name": "Nintendo Switch 2 256GB",
+        "price": 514.57,
+        "category": "Consoles",
+        "image": "https://c.scdn.gr/images/sku_main_images/058318/58318540/20250410171130_nintendo_switch_2_proparagelia.jpeg",
+        "url": "https://www.skroutz.gr/s/58318540/Nintendo-Switch-2-256GB.html?from=highlight_review",
+        "specs": {
+            "Γενικά - Χρώμα": "Μαύρο",
+            "Τύπος - Retro": false,
+            "storage_num": 256,
+            "storage_unit": "GB",
+            "console_platform": "Switch 2",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Nintendo Switch Lite 32GB Yellow",
+        "price": 257.32,
+        "category": "Consoles",
+        "image": "https://a.scdn.gr/images/sku_main_images/019390/19390352/20211124164549_nintendo_switch_lite_yellow.jpeg",
+        "url": "https://www.skroutz.gr/s/19390352/Nintendo-Switch-Lite-32GB-Yellow.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Κίτρινο",
+            "Τύπος - Retro": false,
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch Lite",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Nintendo Switch 32GB (2019 Edition)",
+        "price": 292.32,
+        "category": "Consoles",
+        "image": "https://a.scdn.gr/images/sku_main_images/019926/19926195/20211216121426_nintendo_switch_32gb_red_blue_joy_con_2019.jpeg",
+        "url": "https://www.skroutz.gr/s/19926195/Nintendo-Switch-32GB-2019-Edition.html?from=best_sellers_tag",
+        "specs": {
+            "Γενικά - Χρώμα": "Πολύχρωμο",
+            "Τύπος - Retro": false,
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Nintendo Switch Lite 32GB Gray",
+        "price": 268.15,
+        "category": "Consoles",
+        "image": "https://a.scdn.gr/images/sku_main_images/019390/19390380/20211124164549_nintendo_switch_lite_gray.jpeg",
+        "url": "https://www.skroutz.gr/s/19390380/Nintendo-Switch-Lite-32GB-Gray.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Γκρι",
+            "Τύπος - Retro": false,
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch Lite",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Nintendo Switch 2 256GB Mario Kart World + Assassin's Creed Shadows (Official Bundle)",
+        "price": 600.0,
+        "category": "Consoles",
+        "image": "https://a.scdn.gr/images/sku_main_images/066919/66919147/20260428165937_nintendo_switch_2_256gb_mario_kart_world_assassin_s_creed_shadows_official_bundle.jpeg",
+        "url": "https://www.skroutz.gr/s/66919147/nintendo-switch-2-256gb-mario-kart-world-assassin-s-creed-shadows-official-bundle.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Μαύρο",
+            "Τύπος - Retro": false,
+            "storage_num": 256,
+            "storage_unit": "GB",
+            "console_platform": "Switch 2",
+            "console_edition": "-",
+            "is_portable": true,
+            "console_bundle": "με Παιχνίδι"
+        }
+    },
+    {
+        "name": "Nintendo Switch 2 Pokemon Legends Z-A (Official Bundle)",
+        "price": 689.93,
+        "category": "Consoles",
+        "image": "https://d.scdn.gr/images/sku_main_images/063759/63759067/20251020164339_nintendo_switch_2_pokemon_legends_z_a_official_bundle.jpeg",
+        "url": "https://www.skroutz.gr/s/63759067/nintendo-switch-2-pokemon-legends-z-a-official-bundle.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Μαύρο",
+            "Τύπος - Retro": false,
+            "console_platform": "Switch 2",
+            "console_edition": "-",
+            "is_portable": false,
+            "console_bundle": "με Παιχνίδι"
+        }
+    },
+    {
+        "name": "Nintendo Switch 32GB Red/Blue",
+        "price": 373.42,
+        "category": "Consoles",
+        "image": "https://b.scdn.gr/images/sku_main_images/010864/10864394/20211216121659_nintendo_switch_32gb_red_blue_joy_con.jpeg",
+        "url": "https://www.skroutz.gr/s/10864394/Nintendo-Switch-32GB-Red-Blue.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Πολύχρωμο",
+            "Τύπος - Retro": "-",
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Nintendo Switch 32GB (2019 Edition) Grey",
+        "price": 365.29,
+        "category": "Consoles",
+        "image": "https://a.scdn.gr/images/sku_main_images/019926/19926159/20211216121719_nintendo_switch_32gb_gray_joy_con_2019.jpeg",
+        "url": "https://www.skroutz.gr/s/19926159/Nintendo-Switch-32GB-2019-Edition-Grey.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Γκρι",
+            "Τύπος - Retro": false,
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Nintendo Switch Lite 32GB Coral",
+        "price": 265.86,
+        "category": "Consoles",
+        "image": "https://b.scdn.gr/images/sku_main_images/022387/22387940/20211124164548_nintendo_switch_lite_coral.jpeg",
+        "url": "https://www.skroutz.gr/s/22387940/Nintendo-Switch-Lite-32GB-Coral.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Κόκκινο",
+            "Τύπος - Retro": false,
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch Lite",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Nintendo Switch Lite 32GB Blue",
+        "price": 284.5,
+        "category": "Consoles",
+        "image": "https://b.scdn.gr/images/sku_main_images/028345/28345002/20210416104438_nintendo_switch_lite_blue.jpeg",
+        "url": "https://www.skroutz.gr/s/28345002/Nintendo-Switch-Lite-32GB-Blue.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Μπλε",
+            "Τύπος - Retro": false,
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch Lite",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Nintendo Switch 32GB (2019 Edition) Mario Kart 8 Deluxe (Official Bundle)",
+        "price": 429.9,
+        "category": "Consoles",
+        "image": "https://a.scdn.gr/images/sku_main_images/021649/21649716/20200117091518_nintendo_switch_32gb_red_blue_joy_con_mario_kart_8_deluxe_bundle.jpeg",
+        "url": "https://www.skroutz.gr/s/21649716/Nintendo-Switch-32GB-2019-Edition-Mario-Kart-8-Deluxe-Official-Bundle.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Πολύχρωμο",
+            "Τύπος - Retro": false,
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch",
+            "console_edition": "-",
+            "is_portable": false,
+            "console_bundle": "με Παιχνίδι"
+        }
+    },
+    {
+        "name": "Nintendo Switch OLED 64GB Pokémon Scarlet & Violet Edition",
+        "price": 409.73,
+        "category": "Consoles",
+        "image": "https://d.scdn.gr/images/sku_main_images/039134/39134338/20221103150233_nintendo_switch_oled_64gb_pok_mon_scarlet_violet_edition_official_bundle.jpeg",
+        "url": "https://www.skroutz.gr/s/39134338/Nintendo-Switch-OLED-64GB-Pokemon-Scarlet-Violet-Edition.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Πολύχρωμο",
+            "Τύπος - Retro": false,
+            "storage_num": 64,
+            "storage_unit": "GB",
+            "console_platform": "Switch OLED",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Nintendo Switch 2 256GB & Hogwarts Legacy Key",
+        "price": 544.5,
+        "category": "Consoles",
+        "image": "https://c.scdn.gr/images/sku_main_images/066325/66325177/20260409152514_nintendo_switch_2_256gb_hogwarts_legacy_key.jpeg",
+        "url": "https://www.skroutz.gr/s/66325177/nintendo-switch-2-256gb-hogwarts-legacy-key.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Μαύρο",
+            "Τύπος - Retro": false,
+            "storage_num": 256,
+            "storage_unit": "GB",
+            "console_platform": "Switch 2",
+            "console_edition": "-",
+            "is_portable": true,
+            "console_bundle": "με Παιχνίδι"
+        }
+    },
+    {
+        "name": "Nintendo Switch 32GB (2019 Edition) Red/Blue & Super Mario Odyssey",
+        "price": 429.9,
+        "category": "Consoles",
+        "image": "https://b.scdn.gr/images/sku_main_images/030164/30164042/20210722134853_nintendo_switch_32gb_red_blue_super_mario_odyssey.jpeg",
+        "url": "https://www.skroutz.gr/s/30164042/Nintendo-Switch-32GB-2019-Edition-Red-Blue-Super-Mario-Odyssey.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Πολύχρωμο",
+            "Τύπος - Retro": false,
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch",
+            "console_edition": "-",
+            "is_portable": true,
+            "console_bundle": "με Παιχνίδι"
+        }
+    },
+    {
+        "name": "Nintendo Switch 32GB (2019 Edition) Red/Blue & Pokemon Shield",
+        "price": 429.9,
+        "category": "Consoles",
+        "image": "https://c.scdn.gr/images/sku_main_images/030164/30164019/20210722134802_nintendo_switch_32gb_red_blue_pokemon_shield.jpeg",
+        "url": "https://www.skroutz.gr/s/30164019/Nintendo-Switch-32GB-2019-Edition-Red-Blue-Pokemon-Shield.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Πολύχρωμο",
+            "Τύπος - Retro": false,
+            "storage_num": 32,
+            "storage_unit": "GB",
+            "console_platform": "Switch",
+            "console_edition": "-",
+            "is_portable": true,
+            "console_bundle": "με Παιχνίδι"
+        }
+    },
+    {
+        "name": "Nintendo Switch OLED 64GB Mario Red Edition",
+        "price": 408.99,
+        "category": "Consoles",
+        "image": "https://c.scdn.gr/images/sku_main_images/045469/45469485/20230905121832_nintendo_switch_oled_mario_red_edition.jpeg",
+        "url": "https://www.skroutz.gr/s/45469485/Nintendo-Switch-OLED-64GB-Mario-Red-Edition.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Κόκκινο",
+            "Τύπος - Retro": false,
+            "storage_num": 64,
+            "storage_unit": "GB",
+            "console_platform": "Switch OLED",
+            "console_edition": "-",
+            "is_portable": true
+        }
+    },
+    {
+        "name": "Sony PlayStation 5 Pro 2TB",
+        "price": 889.0,
+        "category": "Consoles",
+        "image": "https://c.scdn.gr/images/sku_main_images/055844/55844364/20240910181651_sony_playstation_5_pro.jpeg",
+        "url": "https://www.skroutz.gr/s/55844364/Sony-PlayStation-5-Pro-2TB.html?from=best_sellers_tag",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 2000,
+            "storage_unit": "GB",
+            "console_platform": "PlayStation 5 Pro",
+            "console_edition": "Ψηφιακή",
+            "is_portable": false
+        }
+    },
+    {
+        "name": "Sony PlayStation 5 Slim 1TB FC 26 (Voucher) (Official Bundle)",
+        "price": 664.65,
+        "category": "Consoles",
+        "image": "https://b.scdn.gr/images/sku_main_images/063819/63819787/20251024101858_sony_playstation_5_fc_26_voucher_official_bundle.jpeg",
+        "url": "https://www.skroutz.gr/s/63819787/sony-playstation-5-slim-1tb-fc-26-voucher-official-bundle.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 1000,
+            "storage_unit": "GB",
+            "console_platform": "PlayStation 5 Slim",
+            "console_edition": "με Blu-ray μονάδα",
+            "is_portable": false
+        }
+    },
+    {
+        "name": "Sony PlayStation 5 Slim 1TB",
+        "price": 635.0,
+        "category": "Consoles",
+        "image": "https://a.scdn.gr/images/sku_main_images/046669/46669791/20260415140624_sony_playstation_5_slim_1tb.jpeg",
+        "url": "https://www.skroutz.gr/s/46669791/Sony-PlayStation-5-Slim-1TB.html?from=highlight_review",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 1000,
+            "storage_unit": "GB",
+            "console_platform": "PlayStation 5 Slim",
+            "console_edition": "με Blu-ray μονάδα",
+            "is_portable": false
+        }
+    },
+    {
+        "name": "Sony PlayStation 5 Slim 1TB με 2o DualSense (Official Bundle)",
+        "price": 689.0,
+        "category": "Consoles",
+        "image": "https://c.scdn.gr/images/sku_main_images/050365/50365863/20240208145409_sony_playstation_5_slim_me_2o_dualsense_official_bundle.jpeg",
+        "url": "https://www.skroutz.gr/s/50365863/Sony-PlayStation-5-Slim-1TB-me-2o-DualSense-Official-Bundle.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 1000,
+            "storage_unit": "GB",
+            "console_platform": "PlayStation 5 Slim",
+            "console_edition": "με Blu-ray μονάδα",
+            "is_portable": false,
+            "console_bundle": "με δύο χειριστήρια"
+        }
+    },
+    {
+        "name": "Sony PlayStation 5 Slim Digital 825GB FC 26 (Voucher) (Official Bundle)",
+        "price": 637.16,
+        "category": "Consoles",
+        "image": "https://b.scdn.gr/images/sku_main_images/063820/63820295/20251023143115_sony_playstation_5_slim_825gb_fc_26_voucher_official_bundle.jpeg",
+        "url": "https://www.skroutz.gr/s/63820295/sony-playstation-5-slim-digital-825gb-fc-26-voucher-official-bundle.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 825,
+            "storage_unit": "GB",
+            "console_platform": "PlayStation 5 Slim Digital",
+            "console_edition": "Ψηφιακή",
+            "is_portable": false,
+            "console_bundle": "με Παιχνίδι"
+        }
+    },
+    {
+        "name": "Sony PlayStation 5 Slim Digital 1TB",
+        "price": 795.96,
+        "category": "Consoles",
+        "image": "https://d.scdn.gr/images/sku_main_images/046670/46670627/20260415141045_sony_playstation_5_slim_digital_1tb.jpeg",
+        "url": "https://www.skroutz.gr/s/46670627/Sony-PlayStation-5-Slim-Digital-1TB.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 1000,
+            "storage_unit": "GB",
+            "console_platform": "PlayStation 5 Slim Digital",
+            "console_edition": "Ψηφιακή",
+            "is_portable": false
+        }
+    },
+    {
+        "name": "Sony PlayStation 5 Slim 1TB Fortnite Flowering Chaos (Official Bundle)",
+        "price": 639.16,
+        "category": "Consoles",
+        "image": "https://c.scdn.gr/images/sku_main_images/064345/64345980/20251124132851_sony_playstation_5_slim_1tb_fortnite_flowering_chaos_official_bundle.jpeg",
+        "url": "https://www.skroutz.gr/s/64345980/sony-playstation-5-slim-1tb-fortnite-flowering-chaos-official-bundle.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 1000,
+            "storage_unit": "GB",
+            "console_platform": "PlayStation 5 Slim",
+            "console_edition": "με Blu-ray μονάδα",
+            "is_portable": false
+        }
+    },
+    {
+        "name": "Sony PlayStation 5 825GB EA Sports FC 24 (Voucher) (Official Bundle)",
+        "price": 698.98,
+        "category": "Consoles",
+        "image": "https://a.scdn.gr/images/sku_main_images/046331/46331527/20230925112124_sony_playstation_5_ea_sports_fc_24_voucher_official_bundle.jpeg",
+        "url": "https://www.skroutz.gr/s/46331527/Sony-PlayStation-5-825GB-EA-Sports-FC-24-Voucher-Official-Bundle.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 825,
+            "storage_unit": "GB",
+            "console_platform": "PlayStation 5",
+            "console_edition": "με Blu-ray μονάδα",
+            "is_portable": false,
+            "console_bundle": "με Παιχνίδι"
+        }
+    },
+    {
+        "name": "Microsoft Xbox Series S 500GB",
+        "price": 487.41,
+        "category": "Consoles",
+        "image": "https://d.scdn.gr/images/sku_main_images/024662/24662008/20211124164548_microsoft_xbox_series_s.jpeg",
+        "url": "https://www.skroutz.gr/s/24662008/Microsoft-Xbox-Series-S-500GB.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 500,
+            "storage_unit": "GB",
+            "console_platform": "Xbox Series S",
+            "console_edition": "Ψηφιακή",
+            "is_portable": false
+        }
+    },
+    {
+        "name": "Microsoft Xbox Series X 1TB",
+        "price": 933.99,
+        "category": "Consoles",
+        "image": "https://b.scdn.gr/images/sku_main_images/022413/22413644/20250714170341_microsoft_xbox_series_x_1tb.jpeg",
+        "url": "https://www.skroutz.gr/s/22413644/Microsoft-Xbox-Series-X-1TB.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Μαύρο",
+            "Τύπος - Retro": false,
+            "storage_num": 1000,
+            "storage_unit": "GB",
+            "console_platform": "Xbox Series X",
+            "console_edition": "με Blu-ray μονάδα",
+            "is_portable": false
+        }
+    },
+    {
+        "name": "Microsoft Xbox Series X 1TB Robot White",
+        "price": 800.37,
+        "category": "Consoles",
+        "image": "https://b.scdn.gr/images/sku_main_images/057420/57420810/20241113130314_microsoft_xbox_series_x_1tb_robot_white.jpeg",
+        "url": "https://www.skroutz.gr/s/57420810/Microsoft-Xbox-Series-X-1TB-Robot-White.html",
+        "specs": {
+            "Γενικά - Χρώμα": "Λευκό",
+            "Τύπος - Retro": false,
+            "storage_num": 1000,
+            "storage_unit": "GB",
+            "console_platform": "Xbox Series X",
+            "console_edition": "Ψηφιακή",
+            "is_portable": false
+        }
+    }
+]

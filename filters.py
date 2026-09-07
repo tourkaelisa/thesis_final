@@ -12,6 +12,23 @@ FIELD_PREDICATE = {
     "definition":  "prop:definition",
     "cpu":         "prop:cpu_model",
     "releaseDate": "schema1:releaseDate",
+    "ram_type":    "prop:ram_type",
+    "storage_type": "prop:storage_type",
+    "console_platform": "prop:console_platform",
+    "console_edition": "prop:console_edition",
+    "console_bundle": "prop:console_bundle",
+    "use_case":    "prop:use_case",
+    "headphone_type": "prop:headphone_type",
+    "connection":  "prop:connection",
+    "gpu_memory":  "prop:gpu_memory",
+    "case_size":   "prop:case_size",
+    "hdr_support": "prop:hdr_support",
+    "height_adjustment": "prop:height_adjustment",
+    "is_curved":   "prop:is_curved",
+    "is_ultrawide": "prop:is_ultrawide",
+    "is_portable": "prop:is_portable",
+    "panel_type":  "prop:panel_type",
+    "has_anc":     "prop:has_anc",
 }
 
 
@@ -54,8 +71,37 @@ def search_category(category, filters, prop_ranges, price_min, price_max) -> lis
                     f'        FILTER(STRENDS(STR(?qnRH{ri}), "_resolution_height"))\n'
                     f"        FILTER({' || '.join(pairs)})"
                 )
+        elif key == "vesa_mount":
+            pairs = []
+            ri = len(quant_joins)
+            for val in values:
+                parts = val.split("×")
+                if len(parts) == 2:
+                    try:
+                        w, h = float(parts[0]), float(parts[1])
+                        pairs.append(f"(?qvVW{ri} = {w} && ?qvVH{ri} = {h})")
+                    except ValueError:
+                        pass
+            if pairs:
+                quant_joins.append(
+                    f"?uri gr:quantitativeProductOrServiceProperty ?qnVW{ri} .\n"
+                    f"        ?qnVW{ri} gr:hasValueFloat ?qvVW{ri} .\n"
+                    f'        FILTER(STRENDS(STR(?qnVW{ri}), "_vesa_width"))\n'
+                    f"        ?uri gr:quantitativeProductOrServiceProperty ?qnVH{ri} .\n"
+                    f"        ?qnVH{ri} gr:hasValueFloat ?qvVH{ri} .\n"
+                    f'        FILTER(STRENDS(STR(?qnVH{ri}), "_vesa_height"))\n'
+                    f"        FILTER({' || '.join(pairs)})"
+                )
         elif key in FIELD_PREDICATE:
-            vals = ", ".join(f'"{v}"' for v in values)
+            mapped_vals = []
+            for v in values:
+                if v == "Ναι":
+                    mapped_vals.append('"true"')
+                elif v == "Όχι":
+                    mapped_vals.append('"false"')
+                else:
+                    mapped_vals.append(f'"{v}"')
+            vals = ", ".join(mapped_vals)
             cat_joins.append(f"?uri {FIELD_PREDICATE[key]} ?{key} .")
             filter_clauses.append(f"FILTER(STR(?{key}) IN ({vals}))")
 

@@ -10,6 +10,10 @@ TYPE_INFO = {
     "http://www.productontology.org/id/Tablet_computer": {"route": "tablets",      "label": "Tablets"},
     "http://www.productontology.org/id/Television_set":  {"route": "tvs",          "label": "Τηλεοράσεις"},
     "http://www.productontology.org/id/Smartwatch":      {"route": "smartwatches", "label": "Smartwatches"},
+    "http://www.productontology.org/id/Desktop_computer": {"route": "desktops",    "label": "Desktops"},
+    "http://www.productontology.org/id/Computer_monitor": {"route": "monitors",    "label": "Οθόνες"},
+    "http://www.productontology.org/id/Game_console":     {"route": "consoles",    "label": "Κονσόλες"},
+    "http://www.productontology.org/id/Headphones":       {"route": "headphones",  "label": "Ακουστικά"},
 }
 
 _CLASSES = " ".join(f"pto:{uri.split('/')[-1]}" for uri in TYPE_INFO)

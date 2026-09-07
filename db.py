@@ -76,11 +76,20 @@ def sync_popularity(graph: rdflib.Graph):
             SELECT ?uri WHERE { ?uri gr:name ?name . }
             """
         )
+        # Διαγραφή παλιών "ορφανών" προϊόντων που έχουν σβηστεί από το GraphDB (π.χ. μετά από data cleaning)
+        valid_uris = [(str(r.uri),) for r in results]
+        
+        # Προσθήκη νέων προϊόντων
         connection.executemany(
             "INSERT OR IGNORE INTO product_popularity "
             "(product_uri, popularity_score, total_additions) VALUES (?, 0, 0)",
-            [(str(r.uri),) for r in results],
+            valid_uris,
         )
+        
+        # Αφαίρεση όσων δεν υπάρχουν πια στο γράφημα
+        uri_list = "','".join([u[0] for u in valid_uris])
+        connection.execute(f"DELETE FROM product_popularity WHERE product_uri NOT IN ('{uri_list}')")
+
         # popularity_score = τρέχον πλήθος αγαπημένων (μηδενίζει και παλιές τυχαίες τιμές επειδή στην αρχή είχα βάλει μερικές default).
         connection.execute("UPDATE product_popularity SET popularity_score = 0")
         connection.execute(

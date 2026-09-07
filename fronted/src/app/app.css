@@ -146,7 +146,7 @@
 .menu-button span { width: 20px; height: 2px; background: #0369a1; border-radius: 2px; }
 
 .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #082f49; }
-.brand-mark { width: 44px; height: 44px; display: grid; place-items: center; color: #ffffff; font-weight: 900; border-radius: 50%; background: linear-gradient(135deg, #0369a1, #06b6d4, #14b8a6); box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4); }
+.brand-logo { width: 75px; height: 75px; object-fit: contain; }
 .brand-text strong { display: block; font-size: 1.1rem; font-weight: 900; line-height: 1.1; }
 .brand-text small { display: block; margin-top: 2px; color: #0e7490; font-weight: 700; font-size: 0.8rem; }
 

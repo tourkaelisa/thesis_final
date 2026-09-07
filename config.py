@@ -55,5 +55,9 @@ CATEGORY_CLASSES = {
     "tablets": "pto:Tablet_computer",
     "tvs": "pto:Television_set",
     "smartwatches": "pto:Smartwatch",
+    "desktops": "pto:Desktop_computer",
+    "headphones": "pto:Headphones",
+    "consoles": "pto:Game_console",
+    "monitors": "pto:Computer_monitor",
 }
 

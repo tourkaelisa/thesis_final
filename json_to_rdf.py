@@ -18,6 +18,10 @@ def get_pto_class(category):
     if "tv" in cat or "τηλεορ" in cat: return PTO.Television_set
     if "tablet" in cat: return PTO.Tablet_computer
     if "watch" in cat: return PTO.Smartwatch
+    if "monitor" in cat: return PTO.Computer_monitor
+    if "headphone" in cat: return PTO.Headphones
+    if "desktop" in cat or "σταθεροί" in cat or "pc" in cat: return PTO.Desktop_computer
+    if "console" in cat or "κονσόλες" in cat: return PTO.Game_console
     return GR.ProductOrService
 
 def create_rdf():
@@ -41,7 +45,11 @@ def create_rdf():
             
             product_uri = ESHOP[prod_id]
             g.add((product_uri, RDF.type, GR.ProductOrService))
-            g.add((product_uri, RDF.type, get_pto_class(item['category'])))
+            
+            # Αν η κατηγορία είναι N/A (λόγω του scraper), παίρνουμε την κατηγορία από το όνομα του αρχείου
+            actual_cat = item['category'] if item['category'] != "N/A" else category_tag
+            g.add((product_uri, RDF.type, get_pto_class(actual_cat)))
+            
             g.add((product_uri, GR.name, Literal(item['name'], lang="el")))
             g.add((product_uri, SCHEMA.image, URIRef(item['image'])))
             g.add((product_uri, SCHEMA.url, URIRef(item['url'])))
@@ -49,6 +57,15 @@ def create_rdf():
             g.add((product_uri, SCHEMA.priceCurrency, Literal("EUR")))
 
             brand = item['name'].split()[0]
+            
+            # Normalize specific mangled brands from the titles
+            brand_normalization = {
+                "Audio": "Audio-Technica",
+                "AirPods": "Apple"
+            }
+            if brand in brand_normalization:
+                brand = brand_normalization[brand]
+                
             brand_uri = ESHOP[f"Brand_{brand}"]
             g.add((product_uri, SCHEMA.manufacturer, brand_uri))
 
@@ -66,7 +83,7 @@ def create_rdf():
                     g.add((q_val_uri, RDF.type, GR.QuantitativeValue))
                     g.add((q_val_uri, GR.hasValueFloat, Literal(spec_val, datatype=XSD.float)))
                     
-                    unit_map = {"inches": "INH", "GB": "E34", "kg": "KGM", "gr": "GRM", "mAh": "MAH", "Hz": "HTZ", "MP": "C62", "mm": "MMT","px": "E37"}
+                    unit_map = {"inches": "INH", "GB": "E34", "kg": "KGM", "gr": "GRM", "mAh": "MAH", "Hz": "HTZ", "GHz": "GHZ", "MP": "C62", "mm": "MMT","px": "E37", "ms": "C26", "hrs": "HUR"}
                     unit_code = unit_map.get(specs.get(unit_key), "C62") 
                     g.add((q_val_uri, GR.hasUnitOfMeasurement, Literal(unit_code)))
                     g.add((product_uri, GR.quantitativeProductOrServiceProperty, q_val_uri))
@@ -107,7 +124,51 @@ def create_rdf():
                                 g.add((product_uri, PROP.screen_resolution, Literal(v, lang="en")))
                             elif "Ευκρίνεια" in clean_key:
                                 g.add((product_uri, PROP.definition, Literal(v, lang="en")))
-
+                            elif "panel_type" in clean_key:
+                                g.add((product_uri, PROP.panel_type, Literal(v, datatype=XSD.string)))
+                            elif "hdr" in clean_key:
+                                if isinstance(spec_val, bool):
+                                    g.add((product_uri, PROP.hdr_support, Literal(spec_val, datatype=XSD.boolean)))
+                            elif "curved" in clean_key:
+                                if isinstance(spec_val, bool):
+                                    g.add((product_uri, PROP.is_curved, Literal(spec_val, datatype=XSD.boolean)))
+                            elif "ultrawide" in clean_key:
+                                if isinstance(spec_val, bool):
+                                    g.add((product_uri, PROP.is_ultrawide, Literal(spec_val, datatype=XSD.boolean)))
+                            elif "height_adjust" in clean_key:
+                                if isinstance(spec_val, bool):
+                                    g.add((product_uri, PROP.height_adjustment, Literal(spec_val, datatype=XSD.boolean)))
+                            elif "connection_type_text" in clean_key:
+                                g.add((product_uri, PROP.connection_type, Literal(v, datatype=XSD.string)))
+                            elif "headphone_type_text" in clean_key:
+                                g.add((product_uri, PROP.headphone_type, Literal(v, datatype=XSD.string)))
+                            elif "has_anc" in clean_key:
+                                if isinstance(spec_val, bool):
+                                    g.add((product_uri, PROP.has_anc, Literal(spec_val, datatype=XSD.boolean)))
+                            elif "use_case_text" in clean_key:
+                                g.add((product_uri, PROP.use_case, Literal(v, datatype=XSD.string)))
+                            elif "desktop_use_text" in clean_key:
+                                g.add((product_uri, PROP.use_case, Literal(v, datatype=XSD.string)))
+                            elif "os_name" in clean_key:
+                                g.add((product_uri, SCHEMA.operatingSystem, Literal(v, datatype=XSD.string)))
+                            elif "ram_type" in clean_key:
+                                g.add((product_uri, PROP.ram_type, Literal(v, datatype=XSD.string)))
+                            elif "storage_type" in clean_key:
+                                g.add((product_uri, PROP.storage_type, Literal(v, datatype=XSD.string)))
+                            elif "gpu_memory" in clean_key:
+                                g.add((product_uri, PROP.gpu_memory, Literal(v, datatype=XSD.string)))
+                            elif "case_size_text" in clean_key:
+                                g.add((product_uri, PROP.case_size, Literal(v, datatype=XSD.string)))
+                            elif "console_platform" in clean_key:
+                                g.add((product_uri, PROP.console_platform, Literal(v, datatype=XSD.string)))
+                            elif "console_edition" in clean_key:
+                                g.add((product_uri, PROP.console_edition, Literal(v, datatype=XSD.string)))
+                            elif "console_bundle" in clean_key:
+                                g.add((product_uri, PROP.console_bundle, Literal(v, datatype=XSD.string)))
+                            elif "is_portable" in clean_key:
+                                if isinstance(spec_val, bool):
+                                    g.add((product_uri, PROP.is_portable, Literal(spec_val, datatype=XSD.boolean)))
+                            
             # ΤΙΜΗ & ΠΡΟΣΦΟΡΑ
             price_spec = ESHOP[f"price_{prod_id}"]
             g.add((price_spec, RDF.type, GR.UnitPriceSpecification))

@@ -8,8 +8,9 @@ import { Register } from './pages/register/register';
 import { Wishlist } from './pages/wishlist/wishlist';
 import { Search } from './pages/search/search';
 
-// Έγκυρες κατηγορίες· οτιδήποτε άλλο δεν θεωρείται κατηγορία και πέφτει στο wildcard.
-const KNOWN_CATEGORIES = ['laptops', 'mobiles', 'tablets', 'tvs', 'smartwatches'];
+// Έγκυρες κατηγορίες·// Επιτρέπουμε δυναμικά routing μόνο για τις κατηγορίες που ξέρουμε, 
+// αποφεύγοντας το σύγκρουση με το wildcard.
+const KNOWN_CATEGORIES = ['laptops', 'mobiles', 'tablets', 'tvs', 'smartwatches', 'desktops', 'monitors', 'headphones', 'consoles'];
 
 // Ταιριάζει το /:name μόνο όταν είναι γνωστή κατηγορία (αλλιώς null → δοκιμάζεται το επόμενο route).
 export function categoryMatcher(segments: UrlSegment[]) {

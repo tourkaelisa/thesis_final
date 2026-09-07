@@ -64,12 +64,51 @@ def get_category_products(category) -> list:
             prop_name = node_uri.split(sep, 1)[-1]
             product_map[uri]["props"][prop_name] = float(b["val"]["value"])
 
+    # Δυναμική προσθήκη των ποιοτικών χαρακτηριστικών (ώστε να βγουν στα φίλτρα του frontend)
+    query_qual = f"""
+    PREFIX prop: <http://www.myeshop.gr/property/>
+    PREFIX pto: <http://www.productontology.org/id/>
+    SELECT ?uri ?pred ?val
+    WHERE {{
+        ?uri a {rdf_class} .
+        ?uri ?pred ?val .
+        FILTER(STRSTARTS(STR(?pred), "http://www.myeshop.gr/property/"))
+    }}
+    """
+    for b in query_graphdb(query_qual):
+        uri = b["uri"]["value"]
+        if uri not in product_map:
+            continue
+        pred = b.get("pred", {}).get("value")
+        val = b.get("val", {}).get("value")
+        if not pred or not val or val.startswith("http"):
+            continue
+            
+        prop_key = pred.split("/")[-1]
+        if prop_key in ("cpu_model", "definition"):
+            continue
+            
+        # Μετατροπή booleans
+        if str(val).lower() == "true":
+            val_str = "Ναι"
+        elif str(val).lower() == "false":
+            val_str = "Όχι"
+        else:
+            val_str = str(val)
+            
+        product_map[uri][prop_key] = val_str
+
     # Συνδυάζουμε resolution_width x resolution_height 
     for p in product_map.values():
         w = p["props"].pop("resolution_width", None)
         h = p["props"].pop("resolution_height", None)
         if w is not None and h is not None:
             p["resolution"] = f"{int(w)}×{int(h)}"
+            
+        vw = p["props"].pop("vesa_width", None)
+        vh = p["props"].pop("vesa_height", None)
+        if vw is not None and vh is not None:
+            p["vesa_mount"] = f"{int(vw)}×{int(vh)}"
 
     return list(product_map.values())
 
@@ -138,9 +177,16 @@ def get_product_details(product_uri, user_id) -> dict:
         "refresh rate": "Ρυθμός Ανανέωσης",
         "weight": "Βάρος",
         "battery": "Μπαταρία",
+        "battery hours": "Διάρκεια Μπαταρίας",
         "screen size": "Μέγεθος Οθόνης",
-        "camera main mp": "Βασική Κάμερα",
+        "camera main mp": "Κάμερα",
         "camera selfie mp": "Selfie Κάμερα",
+        "resolution width": "Ανάλυση Πλάτος",
+        "resolution height": "Ανάλυση Ύψος",
+        "cpu frequency": "Συχνότητα Επεξεργαστή",
+        "response time": "Χρόνος Απόκρισης",
+        "vesa width": "Vesa Πλάτος",
+        "vesa height": "Vesa Ύψος",
     }
 
     res_width = None
@@ -173,14 +219,33 @@ def get_product_details(product_uri, user_id) -> dict:
             unit_str = bval(b, "unit") or ""
             unit_map = {
                 "E34": "GB", "CMT": "cm", "KGM": "kg", "MMT": "mm",
-                "INH": "inches", "CEL": "°C", "MHT": "MHz", "HTZ": "Hz",
+                "INH": "inches", "CEL": "°C", "MHT": "MHz", "HTZ": "Hz", "GHZ": "GHz",
                 "SEC": "sec", "HUR": "ώρες", "KWH": "kWh", "E37": "pixels",
-                "C62": "MP", "MAH": "mAh", "GRM": "gr",
+                "C62": "MP", "MAH": "mAh", "GRM": "gr", "C26": "ms",
             }
             if unit_str in unit_map:
                 unit_str = unit_map[unit_str]
 
             specs.append({"name": prop_name, "value": float(val), "unit": unit_str})
+
+    res_width = None
+    res_height = None
+    vesa_width = None
+    vesa_height = None
+    
+    for s in specs[:]:
+        if s["name"] == "Ανάλυση Πλάτος":
+            res_width = int(s["value"])
+            specs.remove(s)
+        elif s["name"] == "Ανάλυση Ύψος":
+            res_height = int(s["value"])
+            specs.remove(s)
+        elif s["name"] == "Vesa Πλάτος":
+            vesa_width = int(s["value"])
+            specs.remove(s)
+        elif s["name"] == "Vesa Ύψος":
+            vesa_height = int(s["value"])
+            specs.remove(s)
 
     if res_width and res_height:
         specs.append({
@@ -189,9 +254,77 @@ def get_product_details(product_uri, user_id) -> dict:
             "unit": "pixels",
         })
     elif res_width:
-        specs.append({"name": "Οριζόντια Ανάλυση", "value": res_width, "unit": "pixels"})
+        specs.append({"name": "Ανάλυση Πλάτος", "value": res_width, "unit": "pixels"})
     elif res_height:
-        specs.append({"name": "Κατακόρυφη Ανάλυση", "value": res_height, "unit": "pixels"})
+        specs.append({"name": "Ανάλυση Ύψος", "value": res_height, "unit": "pixels"})
+        
+    if vesa_width and vesa_height:
+        specs.append({
+            "name": "Βάση VESA",
+            "value": f"{vesa_width} x {vesa_height}",
+            "unit": "mm",
+        })
+
+    # Ανάκτηση νέων ποιοτικών χαρακτηριστικών (Strings/Booleans)
+    query_qual = f"""
+    PREFIX prop: <http://www.myeshop.gr/property/>
+    SELECT ?pred ?val
+    WHERE {{
+        <{product_uri}> ?pred ?val .
+        FILTER(STRSTARTS(STR(?pred), "http://www.myeshop.gr/property/"))
+    }}
+    """
+    results_qual = query_graphdb(query_qual)
+    
+    qual_translate_map = {
+        "ram_type": "Τύπος RAM",
+        "storage_type": "Τύπος Δίσκου",
+        "console_platform": "Πλατφόρμα",
+        "console_edition": "Έκδοση",
+        "console_bundle": "Πακέτο",
+        "use_case": "Χρήση",
+        "headphone_type": "Είδος",
+        "connection": "Συνδεσιμότητα",
+        "gpu_memory": "Μνήμη Κάρτας",
+        "gpu_model": "Κάρτα Γραφικών",
+        "case_size": "Μέγεθος Κουτιού",
+        "is_portable": "Φορητή",
+        "has_anc": "Active Noise Cancellation",
+        "connection_type": "Συνδεσιμότητα",
+        "hdr_support": "Υποστήριξη HDR",
+        "height_adjustment": "Ρύθμιση Ύψους",
+        "is_curved": "Curved",
+        "is_ultrawide": "Ultrawide",
+        "panel_type": "Τύπος Panel",
+    }
+    
+    ignore_props = {"cpu_model", "definition"}
+    
+    qual_groups = {}
+    for b in results_qual:
+        pred = bval(b, "pred")
+        val = bval(b, "val")
+        if not pred or not val or str(val).startswith("http"):
+            continue
+            
+        prop_key = pred.split("/")[-1]
+        if prop_key in ignore_props:
+            continue
+            
+        if str(val).lower() == "true":
+            val_str = "Ναι"
+        elif str(val).lower() == "false":
+            val_str = "Όχι"
+        else:
+            val_str = str(val)
+            
+        prop_name = qual_translate_map.get(prop_key, prop_key.replace("_", " ").capitalize())
+        if prop_name not in qual_groups:
+            qual_groups[prop_name] = set()
+        qual_groups[prop_name].add(val_str)
+
+    for prop_name, vals in qual_groups.items():
+        specs.append({"name": prop_name, "value": ", ".join(sorted(vals)), "unit": ""})
 
     details["specs"] = specs
     details["id"] = product_uri
