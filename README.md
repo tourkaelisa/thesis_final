@@ -1,15 +1,12 @@
 # E-shop (Διπλωματική) — Οδηγίες εκτέλεσης με Docker
 
 Όλη η εφαρμογή (Angular frontend + FastAPI backend + GraphDB triplestore)
-σηκώνεται με **μία εντολή**. Δεν χρειάζεται να εγκαταστήσετε Python, Node ή
-GraphDB — μόνο το Docker.
+σηκώνεται με **μία εντολή**. Χρειάζεται να εγκαταστήσετε μόνο το Docker.
 
 ## Προαπαιτούμενα
 
 - **Docker Desktop** (Windows/Mac) ή Docker Engine + Compose (Linux)
   → https://www.docker.com/products/docker-desktop/
-
-Τίποτα άλλο.
 
 ## Εκτέλεση
 
@@ -26,12 +23,6 @@ docker compose up --build
 | frontend  | Angular (UI)                | http://localhost:4200    |
 | backend   | FastAPI (REST + WebSocket)  | http://localhost:8000    |
 | graphdb   | GraphDB triplestore         | http://localhost:7200    |
-
-> **Πρώτη φορά:** αργεί λίγο (κατεβαίνουν τα Docker images, χτίζεται το project,
-> στήνεται η βάση). Οι επόμενες εκτελέσεις είναι πολύ γρήγορες.
-
-Η βάση (το repository `eshop_thesis` και τα δεδομένα RDF) **στήνεται μόνη της**
-την πρώτη φορά — δεν χρειάζεται κανένα χειροκίνητο βήμα.
 
 ## Άνοιγμα της εφαρμογής
 
@@ -70,12 +61,16 @@ docker compose down -v
 └── docker-compose.yml Ορχήστρωση όλων των services
 ```
 
-## Σημειώσεις (για ανάπτυξη)
+## Δοκιμαστικοί Λογαριασμοί (Demo Accounts)
 
-- Το frontend τρέχει σε **development mode** με hot reload: αλλαγές στον κώδικα
-  του UI φαίνονται αυτόματα, χωρίς rebuild.
-- Το backend τρέχει με `--reload`: αλλαγές σε Python φαίνονται αυτόματα.
-- Αν προστεθεί **νέα εξάρτηση** (`requirements.txt` ή `package.json`), τρέξτε
-  ξανά με `docker compose up --build`.
-- Ρυθμίσεις (προαιρετικά): αντιγράψτε `.env.example` σε `.env` για να αλλάξετε
-  `JWT_SECRET` / `ADMIN_EMAIL`. Χωρίς `.env` χρησιμοποιούνται dev defaults.
+Για την αξιολόγηση της εφαρμογής, έχουν προ-δημιουργηθεί λογαριασμοί με γεμάτα δεδομένα (wishlists) για να δείτε τα στατιστικά σε δράση.
+
+**Λογαριασμός Διαχειριστή (Admin)**
+Με αυτόν τον λογαριασμό έχετε πρόσβαση στο **Admin Dashboard** (στατιστικά σε πραγματικό χρόνο, εγκαταλελειμμένα προϊόντα, κλπ).
+- **Email:** `elisatourka@gmail.com`
+- **Password:** `elisa123`
+
+**Απλός Λογαριασμός Χρήστη (User)**
+Μπορείτε φυσικά να κάνετε μια νέα "Εγγραφή" από το UI, αλλά αν θέλετε να συνδεθείτε κατευθείαν ως ένας από τους 200 εικονικούς χρήστες που έχουν ήδη προϊόντα στα αγαπημένα τους, χρησιμοποιήστε:
+- **Email:** `user_0_3905@example.com`
+- **Password:** `password123`
