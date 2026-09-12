@@ -20,8 +20,7 @@ docker compose up --build
 
 | Service   | Τι είναι                    | Διεύθυνση                |
 |-----------|-----------------------------|--------------------------|
-| frontend  | Angular (UI)                | http://localhost:4200    |
-| backend   | FastAPI (REST + WebSocket)  | http://localhost:8000    |
+| frontend  | Angular (UI)                | http://localhost:4200    |  
 | graphdb   | GraphDB triplestore         | http://localhost:7200    |
 
 ## Άνοιγμα της εφαρμογής
