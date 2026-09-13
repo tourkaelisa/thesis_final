@@ -42,24 +42,6 @@ docker compose down
 docker compose down -v
 ```
 
-## Έλεγχος ότι όλα δουλεύουν
-
-- **UI:** στο http://localhost:4200, οι κατηγορίες εμφανίζουν προϊόντα.
-- **Backend API:** http://localhost:8000/docs (Swagger της FastAPI).
-- **GraphDB:** http://localhost:7200 (Workbench· repository: `eshop_thesis`).
-- **Στήσιμο βάσης:** `docker compose logs graphdb-init`
-  → πρέπει να δείχνει `Ολοκληρώθηκε το import.` ή `υπάρχει ήδη`.
-
-## Δομή
-
-```
-.                      Python backend (FastAPI) + Dockerfile
-├── fronted/           Angular frontend + Dockerfile (dev) + proxy.conf.json
-├── data/              Δεδομένα RDF (.ttl) που φορτώνονται στη GraphDB
-├── graphdb/           Αυτόματο στήσιμο GraphDB (repo-config.ttl + init.sh)
-└── docker-compose.yml Ορχήστρωση όλων των services
-```
-
 ## Δοκιμαστικοί Λογαριασμοί (Demo Accounts)
 
 Για την αξιολόγηση της εφαρμογής, έχουν προ-δημιουργηθεί λογαριασμοί με γεμάτα δεδομένα (wishlists) για να δείτε τα στατιστικά σε δράση.
