@@ -1,7 +1,9 @@
-"""SQLite: σύνδεση, σχήμα, seeding και data-access για χρήστες, wishlist και δημοτικότητα.
+"""Διαχείριση Σχεσιακής Βάσης Δεδομένων (SQLite).
+Υλοποιεί τη σύνδεση, τον ορισμό σχήματος (schema), την αρχικοποίηση (seeding)
+και την πρόσβαση σε συναλλακτικά δεδομένα (χρήστες, wishlists, μετρικές δημοτικότητας).
 
-Εδώ συγκεντρώνεται όλη η πρόσβαση στα μη-σημασιολογικά (συναλλακτικά) δεδομένα,
-σε αντιδιαστολή με τα σημασιολογικά δεδομένα των προϊόντων που ζουν στο GraphDB.
+Λειτουργεί συμπληρωματικά προς το GraphDB: τα συναλλακτικά δεδομένα 
+διατηρούνται εδώ, ενώ τα σημασιολογικά (οντολογία) στο Triplestore.
 """
 import sqlite3
 import rdflib
@@ -65,10 +67,14 @@ def init_user_database():
             "CREATE INDEX IF NOT EXISTS idx_wishlist_user ON wishlist(user_id)"
         )
 
-# συγχρονίζει τη δημοτικότητα με τα πραγματικά αγαπημένα 
-# popularity_score = πόσοι χρήστες έχουν το προϊόν στα αγαπημένα (μειώνεται στην αφαίρεση).
-# total_additions  = σωρευτικές προσθήκες (δεν μειώνεται).
 def sync_popularity(graph: rdflib.Graph):
+    """Συγχρονίζει τις μετρικές δημοτικότητας των προϊόντων της τοπικής βάσης
+    με το τρέχον γράφημα (GraphDB) και τις λίστες αγαπημένων (wishlists).
+
+    Υπολογίζει δύο κύριους δείκτες:
+    - popularity_score: Ο αριθμός των ενεργών χρηστών που διατηρούν το προϊόν στα αγαπημένα (αυξομειώνεται).
+    - total_additions: Ο συνολικός, σωρευτικός αριθμός προσθηκών του προϊόντος (αποκλειστικά αύξουσα συνάρτηση).
+    """
     with get_db_connection() as connection:
         results = graph.query(
             """
@@ -76,21 +82,23 @@ def sync_popularity(graph: rdflib.Graph):
             SELECT ?uri WHERE { ?uri gr:name ?name . }
             """
         )
-        # Διαγραφή παλιών "ορφανών" προϊόντων που έχουν σβηστεί από το GraphDB (π.χ. μετά από data cleaning)
+        # Καθαρισμός "ορφανών" εγγραφών: ταυτοποίηση προϊόντων που διαγράφηκαν 
+        # από το GraphDB (π.χ. μετά από εκ νέου Data Cleaning)
         valid_uris = [(str(r.uri),) for r in results]
         
-        # Προσθήκη νέων προϊόντων
+        # Καταχώρηση νέων προϊόντων (αν δεν υπάρχουν ήδη)
         connection.executemany(
             "INSERT OR IGNORE INTO product_popularity "
             "(product_uri, popularity_score, total_additions) VALUES (?, 0, 0)",
             valid_uris,
         )
         
-        # Αφαίρεση όσων δεν υπάρχουν πια στο γράφημα
+        # Αφαίρεση προϊόντων που έχουν πάψει να υφίστανται στο σημασιολογικό γράφημα
         uri_list = "','".join([u[0] for u in valid_uris])
         connection.execute(f"DELETE FROM product_popularity WHERE product_uri NOT IN ('{uri_list}')")
 
-        # popularity_score = τρέχον πλήθος αγαπημένων (μηδενίζει και παλιές τυχαίες τιμές επειδή στην αρχή είχα βάλει μερικές default).
+        # Επαναϋπολογισμός του popularity_score (διαγράφει προηγούμενες τιμές 
+        # και υπολογίζει με ακρίβεια τις τρέχουσες συσχετίσεις από τον πίνακα wishlist)
         connection.execute("UPDATE product_popularity SET popularity_score = 0")
         connection.execute(
             """
@@ -100,7 +108,8 @@ def sync_popularity(graph: rdflib.Graph):
             )
             """
         )
-        # total_additions = βάση τουλάχιστον όσα τα τρέχοντα αγαπημένα 
+        # Διασφάλιση ακεραιότητας: Το total_additions πρέπει να είναι 
+        # τουλάχιστον ίσο ή μεγαλύτερο από το τρέχον popularity_score
         connection.execute(
             "UPDATE product_popularity SET total_additions = popularity_score "
             "WHERE total_additions < popularity_score"
@@ -108,8 +117,10 @@ def sync_popularity(graph: rdflib.Graph):
         print("Synced popularity from wishlist (0 = κανένας στα αγαπημένα).")
 
 
-# Δημιουργεί χρήστη και επιστρέφει το id του
 def create_user(first_name, last_name, email, phone, password_hash, terms_accepted) -> int:
+    """Δημιουργεί μια νέα εγγραφή χρήστη στη βάση (πίνακας users) 
+    και επιστρέφει το μοναδικό αναγνωριστικό (id) που του ανατέθηκε.
+    """
     with get_db_connection() as connection:
         cursor = connection.execute(
             """
@@ -144,8 +155,10 @@ def set_admin_role(email) -> int:
         return result.rowcount
 
 
-# Δημοτικότητα 
 def get_popularity_map() -> dict:
+    """Ανακτά τον πλήρη χάρτη (dictionary) δημοτικότητας.
+    Δομή: { product_uri : popularity_score }
+    """
     with get_db_connection() as conn:
         rows = conn.execute(
             "SELECT product_uri, popularity_score FROM product_popularity"
@@ -167,9 +180,11 @@ def get_top_popular_uris(limit: int = 8) -> list:
     return [(r["product_uri"], r["popularity_score"]) for r in rows]
 
 
-# Wishlist
 def get_wishlist_uris(user_id) -> list:
-    """Τα URIs της wishlist με σειρά προσθήκης (νεότερα πρώτα)."""
+    """Επιστρέφει τη λίστα των URIs των προϊόντων που έχει αποθηκεύσει
+    ο συγκεκριμένος χρήστης στα αγαπημένα του. Η ταξινόμηση γίνεται χρονολογικά
+    (από το πιο πρόσφατο στο παλαιότερο).
+    """
     with get_db_connection() as conn:
         rows = conn.execute(
             "SELECT product_uri FROM wishlist WHERE user_id = ? ORDER BY added_at DESC",
@@ -189,7 +204,7 @@ def is_wishlisted(user_id, product_uri) -> bool:
 
 def toggle_wishlist(user_id, product_uri):
     """Toggle αγαπημένου. Ενημερώνει δύο μετρητές:
-      - popularity_score = πόσοι χρήστες το έχουν ΤΩΡΑ στα αγαπημένα (μειώνεται στην αφαίρεση)
+      - popularity_score = πόσοι χρήστες το έχουν τώρα στα αγαπημένα (μειώνεται στην αφαίρεση)
       - total_additions  = σωρευτικές προσθήκες (αυξάνεται μόνο στην προσθήκη, δεν μειώνεται)
     Επιστρέφει (is_wishlisted, popularity)."""
     with get_db_connection() as conn:

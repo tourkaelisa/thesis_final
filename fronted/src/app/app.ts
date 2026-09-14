@@ -20,7 +20,6 @@ export class App implements AfterViewInit {
 
   @ViewChild('topNav') topNav?: ElementRef<HTMLElement>;
 
-  // Θέση/πλάτος του φωτεινού indicator κάτω από τον ενεργό σύνδεσμο.
   indicatorLeft = signal(0);
   indicatorWidth = signal(0);
 
@@ -45,7 +44,6 @@ export class App implements AfterViewInit {
   ];
 
   constructor() {
-    // Κάθε αλλαγή σελίδας μετακινεί το φωτεινό underline στον ενεργό σύνδεσμο.
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe(() => this.scheduleIndicatorUpdate());
@@ -61,7 +59,6 @@ export class App implements AfterViewInit {
   }
 
   private scheduleIndicatorUpdate(): void {
-    // Μικρή καθυστέρηση ώστε να προλάβει το routerLinkActive να εφαρμοστεί στο DOM.
     setTimeout(() => this.updateIndicator(), 0);
   }
 
@@ -72,7 +69,6 @@ export class App implements AfterViewInit {
       this.indicatorLeft.set(active.offsetLeft);
       this.indicatorWidth.set(active.offsetWidth);
     } else {
-      // Σελίδα κατηγορίας ή άλλη — κανένα link ενεργό, κρύβουμε το underline.
       this.indicatorWidth.set(0);
     }
   }

@@ -47,7 +47,6 @@
   line-height: 1.7;
 }
 
-/* ── Filter Bar ── */
 .filter-bar {
   width: min(1380px, 100%);
   margin: 0 auto 28px;
@@ -262,7 +261,6 @@
 
 .filter-checkbox-label:hover .filter-val-text { color: #0284c7; }
 
-/* Price Range */
 .price-range {
   display: flex;
   flex-direction: column;
@@ -306,7 +304,6 @@
 
 .price-dash { display: none; }
 
-/* Empty state */
 .empty-state {
   display: flex;
   flex-direction: column;

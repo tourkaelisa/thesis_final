@@ -63,7 +63,6 @@
   transform: scale(1.05);
 }
 
-/* ── KPI ── */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -100,7 +99,6 @@
 .kpi-value { color: #0284c7; font-size: 2.6rem; font-weight: 900; line-height: 1; }
 .kpi-label { color: #0e7490; font-size: 0.88rem; font-weight: 700; }
 
-/* ── Registrations Chart ── */
 .chart-card {
   margin-bottom: 24px;
 }
@@ -116,10 +114,6 @@
 
 .chart-head .card-title { margin: 0; }
 
-/* (η εμφάνιση του mat-button-toggle ορίζεται global στο styles.css λόγω
-   view encapsulation — εδώ μένει μόνο το layout του host) */
-
-/* σύνοψη */
 .chart-summary {
   display: flex;
   flex-wrap: wrap;
@@ -134,18 +128,15 @@
 .sum-accent { color: #0284c7; }
 .sum-label { font-size: 0.74rem; font-weight: 700; color: #64748b; }
 
-/* Chart.js canvas wrapper (το canvas γεμίζει το πλαίσιο σε σταθερό ύψος) */
 .chart-canvas-wrap {
   position: relative;
   height: 300px;
   margin-top: 14px;
 }
 
-/* ── Wishlist activity (teal accents) ── */
 .title-icon-rose { color: #0e7490 !important; }
 .sum-rose { color: #0e7490; }
 
-/* ── Insights grid: engagement + εγκαταλείψεις (δίπλα-δίπλα) ── */
 .insight-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -153,10 +144,6 @@
   margin-bottom: 24px;
 }
 
-/* Οι δύο κάρτες κρατούν την κανονική εμφάνιση .dash-card (ίδια με τις υπόλοιπες)
-   ώστε να έχουν καθαρό κενό μεταξύ τους — μόνο τα accents αλλάζουν χρώμα. */
-
-/* gradient badge πίσω από το εικονίδιο τίτλου */
 .title-badge {
   display: grid;
   place-items: center;
@@ -174,7 +161,6 @@
 .badge-blue { background: linear-gradient(135deg, #06b6d4, #0284c7); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.32); }
 .badge-slate { background: linear-gradient(135deg, #94a3b8, #475569); box-shadow: 0 4px 12px rgba(71, 85, 105, 0.28); }
 
-/* engagement: donut + legend δίπλα-δίπλα, κατανομή από κάτω */
 .engage-hero {
   display: flex;
   align-items: center;
@@ -246,7 +232,6 @@
 .dist-label { font-size: 0.82rem; font-weight: 700; color: #334155; }
 .dist-count { font-size: 0.88rem; font-weight: 900; color: #0284c7; text-align: right; }
 
-/* ── Προϊόντα που εγκαταλείπονται (teal = μένουν, γκρι = αφαιρέθηκαν) ── */
 .abandon-legend { display: flex; gap: 14px; font-size: 0.76rem; }
 .leg-retained { background: linear-gradient(135deg, #06b6d4, #0284c7); }
 .leg-lost { background: linear-gradient(135deg, #cbd5e1, #64748b); }
@@ -266,7 +251,6 @@
 }
 .abandon-row:hover { background: rgba(100, 116, 139, 0.1); transform: translateX(3px); }
 
-/* tooltip επεξήγησης (CSS hover) */
 .abandon-tip {
   position: absolute;
   right: 12px;
@@ -357,7 +341,6 @@
 }
 .abandon-empty p { margin: 0; font-weight: 700; }
 
-/* ── Main Grid ── */
 .dash-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -390,8 +373,6 @@
   color: #0284c7;
 }
 
-
-/* ── Leaderboard ── */
 .leaderboard {
   display: flex;
   flex-direction: column;
@@ -454,7 +435,6 @@
   text-align: right;
 }
 
-/* ── Loading ── */
 .loading-state {
   display: flex;
   flex-direction: column;

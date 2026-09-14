@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { Router, RouterLink } from '@angular/router';
@@ -26,12 +26,19 @@ export class Home implements OnInit {
     return `personalizedProducts_${userId}`;
   }
 
-  constructor(private router: Router, private streamService: DataStreamService) {}
+  constructor(private router: Router, private streamService: DataStreamService) {
+    effect(() => {
+      const user = this.auth.currentUser();
+      if (!user) {
+        this.personalizedProducts.set([]);
+      }
+    });
+  }
 
   ngOnInit() {
     const user = this.auth.currentUser();
 
-    // Άμεση εμφάνιση από cache (αν υπάρχει) — ενημερώνεται με φρέσκα δεδομένα μόλις έρθουν.
+    // Άμεση εμφάνιση από cache (αν υπάρχει) και ενημερώνεται με φρέσκα δεδομένα μόλις έρθουν.
     const cachedPopular = this.readCache(this.POPULAR_CACHE_KEY);
     if (cachedPopular.length) {
       this.popularProducts.set(cachedPopular);

@@ -1,3 +1,8 @@
+"""Διαδικασία Καθαρισμού και Τυποποίησης Δεδομένων (Data Cleaning & Normalization).
+Αυτό το script διαβάζει τα ακατέργαστα JSON αρχεία (raw_data) που συλλέχθηκαν, 
+ομογενοποιεί τα τεχνικά χαρακτηριστικά (χρησιμοποιώντας λεξικά χαρτογράφησης MAPPINGS),
+και εξάγει τα καθαρισμένα αρχεία, έτοιμα προς μετατροπή σε RDF (Triplestore).
+"""
 import json
 import os
 import re
@@ -52,8 +57,11 @@ MAPPINGS = {
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
 
-# Βοηθητική συνάρτηση που βρίσκει τον πρώτο αριθμό σε ένα κείμενο. Επιστρέφει float αν as_float=True, αλλιώς int.
 def extract_number(text, as_float=False):
+    """Απομονώνει και επιστρέφει την πρώτη αριθμητική τιμή από μια συμβολοσειρά (string).
+    Υποστηρίζει την ανάγνωση δεκαδικών ψηφίων, μετατρέποντας το κόμμα σε τελεία.
+    Αν το as_float είναι True, επιστρέφει float, διαφορετικά επιστρέφει ακέραιο (int).
+    """
     text_clean = str(text).replace(',', '.')
     match = re.search(r'\d+(\.\d+)?', text_clean)
     if match:
@@ -209,7 +217,7 @@ def clean_specs(specs):
                 cleaned["vesa_height_num"], cleaned["vesa_height_unit"] = int(match.group(2)), "mm"
             break
 
-    # 17. Booleans // δεν τα χω φορτωσει ακομα στο graphDB
+    # 17. Λογικές Μεταβλητές (Booleans)
     cleaned = {k: (True if v == "Ναι" else False if v == "Όχι" else v) for k, v in cleaned.items()}
 
     # 18. Ακουστικά - Είδος
@@ -302,8 +310,10 @@ def clean_specs(specs):
 
     return cleaned
 
-# καθαρισμος τον json αρχειων
 def clean_all_files():
+    """Σαρώνει όλα τα JSON αρχεία του καταλόγου εισόδου, εφαρμόζει τον 
+    καθαρισμό στα χαρακτηριστικά (specs) και αφαιρεί τυχόν διπλότυπες εγγραφές (deduplication).
+    """
     files = [f for f in os.listdir(INPUT_DIR) if f.endswith('.json')]
     for file_name in files:
         with open(os.path.join(INPUT_DIR, file_name), 'r', encoding='utf-8') as f:
@@ -313,7 +323,9 @@ def clean_all_files():
                 print(f"Σφάλμα στο {file_name}: {e}")
                 continue
 
-        # κρατάμε μόνο προϊόντα με price>0, καθαρισμός των specs, deduplication με βάση το name (όταν υπάρχουν διπλά, προτιμάμε το URL χωρίς # που δείχνει στην κανονική σελίδα του προϊόντος)
+        # Διαγραφή προϊόντων χωρίς τιμή, καθαρισμός τεχνικών χαρακτηριστικών,
+        # και αφαίρεση διπλότυπων εγγραφών (deduplication). Κατά τον εντοπισμό διπλοτύπων, 
+        # προτιμάται το canonical URL (δηλαδή αυτό που δεν περιέχει χαρακτήρες anchor '#').
         unique_products = {}
         for item in data:
             if item.get('price', 0) > 0: 

@@ -9,8 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 import { AuthService, CurrentUser } from '../../services/auth';
 
-// Ίδιο regex με τον server (security.py): απαιτεί domain με TLD ≥ 2 γραμμάτων.
-// Απορρίπτει π.χ. "a@a" που το Validators.email δέχεται.
+// Ίδιο regex με τον server (security.py): απαιτεί domain με TLD ≥ 2 γραμμάτων
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
 
 // Προαιρετικό πεδίο: αν είναι κενό περνάει. Αλλιώς επιτρέπει μόνο ψηφία/+/κενά/παύλες

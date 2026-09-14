@@ -27,23 +27,18 @@ export class Dashboard implements OnInit, OnDestroy {
   lastUpdated = signal<Date | null>(null);
   private statsSub?: Subscription;
 
-  // Τρόπος προβολής για κάθε γράφημα (τα toggles στο template)
   chartMode = signal<'cumulative' | 'daily'>('cumulative');
   wlMode = signal<'day' | 'week'>('day');
 
-  // Αναφορές στα <canvas> (γεμίζουν όταν εμφανιστεί το dashboard)
   private regCanvas = viewChild<ElementRef<HTMLCanvasElement>>('regCanvas');
   private wlCanvas = viewChild<ElementRef<HTMLCanvasElement>>('wlCanvas');
   private engCanvas = viewChild<ElementRef<HTMLCanvasElement>>('engCanvas');
 
-  // Στιγμιότυπα Chart.js
   private regChart?: Chart;
   private wlChartObj?: Chart;
   private engChart?: Chart;
 
   constructor() {
-    // Κάθε φορά που αλλάζουν τα δεδομένα ή ο τρόπος προβολής, (ξανα)σχεδιάζεται
-    // το αντίστοιχο γράφημα. Τα signals κάνουν τα effects να «ξυπνούν» μόνα τους.
     effect(() => this.renderRegistrations());
     effect(() => this.renderWishlist());
     effect(() => this.renderEngagement());
@@ -60,8 +55,6 @@ export class Dashboard implements OnInit, OnDestroy {
       return;
     }
 
-    // Το dashboard ενημερώνεται live: ο server ωθεί DASHBOARD_STATS με κάθε
-    // μεταβολή των δεδομένων (βλ. realtime hub). Ζητάμε άπαξ τα αρχικά στοιχεία.
     this.statsSub = this.streamService.listenToStore().subscribe(msg => {
       if (msg.type === 'DASHBOARD_STATS') {
         this.stats.set(msg);
@@ -91,11 +84,8 @@ export class Dashboard implements OnInit, OnDestroy {
     if (mode) this.wlMode.set(mode);
   }
 
-  // ──────────────────────────────────────────────────────────
   //  Γραφήματα (Chart.js)
-  // ──────────────────────────────────────────────────────────
 
-  /** Κοινές ρυθμίσεις αξόνων για το γραμμικό και το ραβδόγραμμα. */
   private axisOptions() {
     return {
       responsive: true,
@@ -202,7 +192,7 @@ export class Dashboard implements OnInit, OnDestroy {
           responsive: true,
           maintainAspectRatio: false,
           cutout: '72%',
-          plugins: { legend: { display: false } }, // το legend υπάρχει ως HTML δίπλα
+          plugins: { legend: { display: false } }, 
         } as any,
       });
     } else {
@@ -220,10 +210,6 @@ export class Dashboard implements OnInit, OnDestroy {
     }
     return out;
   }
-
-  // ──────────────────────────────────────────────────────────
-  //  Συνόψεις & υπόλοιπα στοιχεία (data only)
-  // ──────────────────────────────────────────────────────────
 
   maxPopularity(): number {
     const stats = this.stats();
@@ -273,7 +259,7 @@ export class Dashboard implements OnInit, OnDestroy {
     return a.length ? Math.max(...a.map(p => p.additions)) : 1;
   });
 
-  // ── helpers ημερομηνιών ──
+  //helpers ημερομηνιών
 
   /** "2026-06-12" → "12/6" */
   shortDate(iso: string): string {

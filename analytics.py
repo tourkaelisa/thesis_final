@@ -1,14 +1,16 @@
 """Analytics: υπολογισμός όλων των μετρικών του πίνακα ελέγχου και των δημοφιλέστερων στην αρχική σελίδα.
-Κάθε μετρική είναι μια αυτοτελής συνάρτηση· η get_dashboard_stats() απλώς τις
-συνθέτει σε ένα ενιαίο payload για το frontend.
+Κάθε μετρική είναι μια αυτοτελής συνάρτηση, η get_dashboard_stats() απλώς τις συνθέτει σε ένα ενιαίο payload για το frontend.
 """
 import datetime
 import db
 from graphdb import query_graphdb, bval
 
 
-# Δημοφιλέστερα προϊόντα (πλέγμα τοπ 8 δημοφιλεστερων στην αρχική)
 def get_popular_products(limit: int = 8) -> list:
+    """Επιστρέφει τα κορυφαία σε δημοτικότητα προϊόντα για προβολή στην Αρχική σελίδα.
+    Η αναζήτηση πραγματοποιείται συνδυάζοντας το σκορ από την τοπική SQLite με 
+    τα πλήρη σημασιολογικά δεδομένα (όνομα, τιμή, εικόνα) από το GraphDB.
+    """
     top = db.get_top_popular_uris(limit)
     if not top:
         return []
@@ -30,7 +32,7 @@ def get_popular_products(limit: int = 8) -> list:
     rdf_map = {bval(r, "uri"): r for r in results}
 
     products = []
-    for uri, _ in top:  # διατηρούμε τη σειρά δημοτικότητας
+    for uri, _ in top:  
         r = rdf_map.get(uri)
         if not r:
             continue
@@ -44,8 +46,11 @@ def get_popular_products(limit: int = 8) -> list:
     return products
 
 
-# KPI (Σύνολα χρηστών, προσθηκών στη wishlist και προϊόντων)
 def _kpi_counts() -> dict:
+    """Υπολογίζει τους βασικούς Δείκτες Απόδοσης (KPIs).
+    Επιστρέφει το συνολικό πλήθος των εγγεγραμμένων χρηστών, τις συνολικές
+    προσθήκες προϊόντων σε λίστες αγαπημένων και το πλήθος των διαθέσιμων προϊόντων.
+    """
     with db.get_db_connection() as conn:
         total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
         total_wishlists = conn.execute(
@@ -61,16 +66,20 @@ def _kpi_counts() -> dict:
     }
 
 
-# κάνει return το όνομα ενός προϊόντος από το URI του
 def _product_name(uri: str) -> str:
+    """Ανακτά την ονομασία (gr:name) ενός συγκεκριμένου προϊόντος από το GraphDB, 
+    κάνοντας χρήση του μοναδικού URI του.
+    """
     res = query_graphdb(
         f"PREFIX gr: <http://purl.org/goodrelations/v1#> "
         f"SELECT ?name WHERE {{ <{uri}> gr:name ?name . }}"
     )
     return bval(res[0], "name") if res else uri.split("/")[-1]
 
-# τοπ 5 δημοφιλέστερα προϊόντα
 def _top_products(limit: int = 5) -> list:
+    """Ανακτά τα N πιο δημοφιλή προϊόντα με βάση το τρέχον popularity_score
+    από την τοπική βάση δεδομένων, για προβολή στα στατιστικά του Dashboard.
+    """
     with db.get_db_connection() as conn:
         rows = conn.execute(
             "SELECT product_uri, popularity_score FROM product_popularity "
@@ -83,8 +92,10 @@ def _top_products(limit: int = 5) -> list:
     ]
 
 
-# Top brands (με τα περισσότερα προϊόντα)
 def _top_brands(limit: int = 5) -> list:
+    """Εντοπίζει τις πιο δημοφιλείς κατασκευάστριες εταιρείες (Top Brands).
+    Η αναζήτηση γίνεται μεσω SPARQL query για να βρεθούν τα brands με τα περισσότερα προϊόντα.
+    """
     brand_res = query_graphdb(
         "PREFIX schema1: <http://schema.org/> "
         "SELECT ?brand (COUNT(?p) AS ?cnt) WHERE { "
@@ -99,8 +110,11 @@ def _top_brands(limit: int = 5) -> list:
     return top_brands
 
 
-# Χρονοσειρά εγγραφών χρηστών ανά ημέρα για τις τελεύταίες 30 μέρες
 def get_registrations_timeline(days: int = 30) -> list:
+    """Υπολογίζει τη χρονοσειρά (timeline) των εγγραφών νέων χρηστών.
+    Ομαδοποιεί τις εγγραφές ανά ημέρα για το επιλεγμένο χρονικό παράθυρο
+    και διατηρεί το αθροιστικό σύνολο.
+    """
     today = datetime.date.today()
     window_start = today - datetime.timedelta(days=days - 1)
     start_iso = window_start.isoformat()
@@ -128,8 +142,11 @@ def get_registrations_timeline(days: int = 30) -> list:
     return timeline
 
 
-# Προσθήκες στο wishlist - Μετρά τις γραμμές του πίνακα wishlist βάσει added_at (ταν ένας χρήστης αφαιρεί ένα προϊόν, η γραμμή διαγράφεται)
 def get_wishlist_activity_timeline(days: int = 30) -> list:
+    """Υπολογίζει τη χρονοσειρά της δραστηριότητας στις λίστες αγαπημένων (wishlists).
+    Μετράει τον όγκο των προσθηκών προϊόντων (βάσει ημερομηνίας) ώστε να αποτυπώσει
+    τη συνολική αλληλεπίδραση των χρηστών με την πλατφόρμα.
+    """
     today = datetime.date.today()
     window_start = today - datetime.timedelta(days=days - 1)
     start_iso = window_start.isoformat()
@@ -149,9 +166,12 @@ def get_wishlist_activity_timeline(days: int = 30) -> list:
     return timeline
 
 
-# Προϊόντα που εγκαταλείπονται (που προστέθηκαν στη wishlist και αργότερα αφαιρέθηκαν) abandoned = total_additions − popularity_score
-# περιλαμβάνει το τρέχον πλήθος, τις συνολικές προσθήκες και το ποσοστό εγκατάλειψης
 def get_abandoned_products(limit: int = 6) -> list:
+    """Εντοπίζει τα 'Εγκαταλελειμμένα' Προϊόντα (Abandoned Products).
+    Αυτά ορίζονται ως τα προϊόντα που, ενώ είχαν προστεθεί σε Wishlist στο παρελθόν (total_additions),
+    στη συνέχεια αφαιρέθηκαν από τους χρήστες (μειώνοντας το popularity_score).
+    Επιστρέφει το ποσοστό εγκατάλειψης (abandonment rate).
+    """
     with db.get_db_connection() as conn:
         rows = conn.execute(
             "SELECT product_uri, popularity_score, total_additions, "
@@ -176,8 +196,12 @@ def get_abandoned_products(limit: int = 6) -> list:
     return products
 
 
-# ενεργοί χρήστες (όσοι έχουν ≥1 αγαπημένο), μέσος όρος αγαπημένων ανά ενεργό χρήστη, κατανομή μεγέθους λίστας
 def get_engagement_stats() -> dict:
+    """Υπολογίζει τα στατιστικά αλληλεπίδρασης των χρηστών (User Engagement).
+    Ορίζει ως 'ενεργό χρήστη' οποιονδήποτε έχει τουλάχιστον ένα προϊόν στη λίστα αγαπημένων.
+    Επιστρέφει τα σύνολα, το ποσοστό συμμετοχής, και τον μέσο όρο αντικειμένων ανά χρήστη, 
+    καθώς και την κατανομή μεγέθους λίστας (histogram).
+    """
     with db.get_db_connection() as conn:
         total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
         size_rows = conn.execute(
@@ -213,8 +237,10 @@ def get_engagement_stats() -> dict:
     }
 
 
-# payload dashboard
 def get_dashboard_stats() -> dict:
+    """Συγκεντρώνει και επιστρέφει το συνολικό payload (JSON) των μετρικών 
+    ώστε να καταναλωθεί με ένα μόνο HTTP αίτημα από το Admin Dashboard.
+    """
     return {
         **_kpi_counts(),
         "registrations_timeline": get_registrations_timeline(),

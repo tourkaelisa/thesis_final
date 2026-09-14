@@ -1,3 +1,9 @@
+"""Ανάλυση Δεδομένων για τη δημιουργία κανόνων SHACL.
+Σαρώνονται τα εμπλουτισμένα δεδομένα RDF προκειμένου να εντοπιστούν 
+τα κοινά χαρακτηριστικά (properties) ανά κατηγορία προϊόντων (100% εμφάνιση).
+Διασφαλίζει ότι οι κανόνες επικύρωσης SHACL 
+θα ανταποκρίνονται με ακρίβεια στα πραγματικά δεδομένα του ηλεκτρονικού καταστήματος.
+"""
 import rdflib
 from collections import defaultdict
 
@@ -19,7 +25,7 @@ classes = {
     "Headphones": PTO.Headphones,
 }
 
-print("=== GLOBAL PROPERTIES (100% of all products) ===")
+print("ΚΑΘΟΛΙΚΑ ΧΑΡΑΚΤΗΡΙΣΤΙΚΑ (GLOBAL PROPERTIES) (100% εμφάνιση σε όλα τα προϊόντα)")
 all_products = list(g.subjects(rdflib.RDF.type, GR.ProductOrService))
 print(f"Total Products: {len(all_products)}")
 
@@ -30,11 +36,11 @@ for p in all_products:
         global_prop_counts[pr] += 1
 
 global_100 = [p for p, c in global_prop_counts.items() if c == len(all_products)]
-print("Global 100% Properties:")
+print("Καθολικά Χαρακτηριστικά (100%):")
 for p in global_100:
     print(f"  {p}")
 
-print("\n=== CATEGORY PROPERTIES (100% within category) ===")
+print("\nΧΑΡΑΚΤΗΡΙΣΤΙΚΑ ΑΝΑ ΚΑΤΗΓΟΡΙΑ (CATEGORY PROPERTIES) (100% εμφάνιση εντός της κατηγορίας)")
 for cat_name, cat_uri in classes.items():
     instances = list(g.subjects(rdflib.RDF.type, cat_uri))
     if not instances:
@@ -46,31 +52,30 @@ for cat_name, cat_uri in classes.items():
     quant_counts = defaultdict(int)
     
     for i in instances:
-        # Normal properties
+        # Απλά Σημασιολογικά Χαρακτηριστικά (Normal properties)
         props = set(g.predicates(subject=i))
         for pr in props:
             prop_counts[pr] += 1
             
-        # Quantitative properties
+        # Ποσοτικά Χαρακτηριστικά (Quantitative properties)
         quants = list(g.objects(subject=i, predicate=GR.quantitativeProductOrServiceProperty))
         for q in quants:
-            # extract basename from URI
+            # Εξαγωγή του βασικού ονόματος (basename) από το URI
             q_str = str(q)
             if "_" in q_str:
-                basename = q_str.split("_", 1)[1] # e.g., 'ram' from 'ESHOP_XYZ_ram'
-                # actually, let's just get the suffix. E.g. 58318540_ram -> ram
+                # Απομόνωση του επιθήματος (π.χ. από '58318540_ram' κρατάμε το 'ram')
                 basename = "_".join(q_str.split("/")[-1].split("_")[1:])
                 quant_counts[basename] += 1
 
     cat_100 = [p for p, c in prop_counts.items() if c == len(instances)]
     quant_100 = [q for q, c in quant_counts.items() if c == len(instances)]
     
-    print("  Properties (100%):")
+    print("Χαρακτηριστικά Κατηγορίας (100%):")
     for p in cat_100:
-        if p not in global_100: # only print category-specific ones
+        if p not in global_100: # Εκτύπωση μόνο όσων είναι ειδικά για την κατηγορία (αποκλεισμός των καθολικών)
             print(f"    {p}")
             
-    print("  Quantitative Values (100%):")
+    print("Ποσοτικές Τιμές Κατηγορίας (100%):")
     for q in quant_100:
         print(f"    {q}")
 

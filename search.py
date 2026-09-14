@@ -3,7 +3,7 @@
 
 import unicodedata
 
-# Κλάση οντολογίας - (route, ετικέτα) για την εμφάνιση κατηγορίας στα αποτελέσματα.
+# Κλάση οντολογίας (route, ετικέτα) για την εμφάνιση κατηγορίας στα αποτελέσματα.
 TYPE_INFO = {
     "http://www.productontology.org/id/Laptop":          {"route": "laptops",      "label": "Laptops"},
     "http://www.productontology.org/id/Smartphone":      {"route": "mobiles",      "label": "Mobiles"},
@@ -24,36 +24,31 @@ PREFIX schema1: <http://schema.org/>
 PREFIX pto: <http://www.productontology.org/id/>
 """
 
-
+#Ασφαλής εισαγωγή όρου σε SPARQL string literal
 def _escape(term: str) -> str:
-    """Ασφαλής εισαγωγή όρου σε SPARQL string literal."""
     return term.replace("\\", "\\\\").replace('"', '\\"')
 
-
+#Αφαιρεί τόνους/διαλυτικ
 def _strip_accents(text: str) -> str:
-    """Αφαιρεί τόνους/διαλυτικά ώστε «άσπρο» και «ασπρο» να θεωρούνται ίδια."""
     nfd = unicodedata.normalize("NFD", text)
     return "".join(c for c in nfd if unicodedata.category(c) != "Mn")
 
 
-# Αντιστοίχιση τονισμένων ελληνικών (πεζών) στις άτονες μορφές, για χρήση στο SPARQL.
+# Αντιστοίχιση τονισμένων ελληνικών στις άτονες μορφές, για χρήση στο SPARQL.
 _GREEK_ACCENTS = {
     "ά": "α", "έ": "ε", "ή": "η", "ί": "ι",
     "ό": "ο", "ύ": "υ", "ώ": "ω",
     "ϊ": "ι", "ϋ": "υ", "ΐ": "ι", "ΰ": "υ",
 }
 
-
+#Τυλίγει μια SPARQL έκφραση με αλυσίδα REPLACE ώστε να αφαιρεθούν οι τόνοι
 def _strip_accents_sparql(expr: str) -> str:
-    """Τυλίγει μια SPARQL έκφραση με αλυσίδα REPLACE ώστε να αφαιρεθούν οι τόνοι."""
     for accented, plain in _GREEK_ACCENTS.items():
         expr = f'REPLACE({expr}, "{accented}", "{plain}")'
     return expr
 
-
+#SPARQL που απαιτεί κάθε λέξη να εμφανίζεται στο όνομα ή στη μάρκα.
 def build_sparql(terms: list[str]) -> str:
-    """SPARQL που απαιτεί κάθε λέξη να εμφανίζεται στο όνομα Ή στη μάρκα.
-    Όνομα/μάρκα και όροι συγκρίνονται άτονα """
     name_expr = _strip_accents_sparql("LCASE(STR(?name))")
     brand_expr = _strip_accents_sparql('LCASE(COALESCE(STR(?brand), ""))')
     filters = []
@@ -96,17 +91,15 @@ def _format(bindings: list) -> list[dict]:
         })
     return products
 
-
+#Αναζήτηση λέξης-κλειδιού. Επιστρέφει τη λίστα όλων των προϊόντων που ταιριάζουν
 def search(query: str, query_fn, popularity_fn=None) -> list[dict]:
-    """Αναζήτηση λέξης-κλειδιού. Επιστρέφει τη λίστα όλων των προϊόντων που
-    ταιριάζουν (χωρίς αποκοπή σε πλήθος)."""
     terms = [_strip_accents(t) for t in query.lower().split() if t]
     if not terms:
         return []
 
     products = _format(query_fn(build_sparql(terms)))
 
-    # Ταξινόμηση ώστε τα πιο δημοφιλή (περισσότερα αγαπημένα) να εμφανίζονται πρώτα.
+    # Ταξινόμηση ώστε τα πιο δημοφιλή να εμφανίζονται πρώτα.
     if popularity_fn:
         products.sort(key=lambda p: popularity_fn(p["id"]), reverse=True)
 

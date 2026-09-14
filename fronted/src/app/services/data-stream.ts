@@ -35,7 +35,7 @@ export class DataStreamService {
   // χρήστες) — αντί να μένουν άδειες οι λίστες.
   private handleAuthInvalid(message: any): void {
     if (message?.type !== 'AUTH_INVALID') return;
-    if (!this.auth.currentUser()) return; // ήδη αποσυνδεδεμένος — τίποτα να κάνουμε
+    if (!this.auth.currentUser()) return; 
     this.auth.clearUser();
     this.router.navigate(['/']);
   }
@@ -48,7 +48,6 @@ export class DataStreamService {
     this.socket$.next(token ? { ...message, token } : message);
   }
 
-  // Ακούμε για νέα δεδομένα από την Python
   listenToStore(): Observable<any> {
     return this.socket$.asObservable();
   }

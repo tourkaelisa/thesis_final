@@ -3,8 +3,12 @@ import db
 from config import CATEGORY_CLASSES
 from graphdb import query_graphdb, bval
 
-# Όλα τα προϊόντα μιας κατηγορίας με τα χαρακτηριστικά τους
 def get_category_products(category) -> list:
+    """Επιστρέφει όλα τα προϊόντα που ανήκουν σε μια συγκεκριμένη κατηγορία,
+    συμπεριλαμβανομένων των βασικών και ποσοτικών χαρακτηριστικών τους.
+    Η λειτουργία χρησιμοποιεί πολλαπλά SPARQL queries στο GraphDB για να 
+    χτίσει δυναμικά το προφίλ (properties) κάθε προϊόντος.
+    """
     rdf_class = CATEGORY_CLASSES[category]
 
     query = f"""
@@ -64,7 +68,8 @@ def get_category_products(category) -> list:
             prop_name = node_uri.split(sep, 1)[-1]
             product_map[uri]["props"][prop_name] = float(b["val"]["value"])
 
-    # Δυναμική προσθήκη των ποιοτικών χαρακτηριστικών (ώστε να βγουν στα φίλτρα του frontend)
+    # Δυναμική ενσωμάτωση ποιοτικών χαρακτηριστικών (π.χ. χρώμα, λειτουργικό) 
+    # προκειμένου να καταστούν διαθέσιμα στα φίλτρα αναζήτησης του UI
     query_qual = f"""
     PREFIX prop: <http://www.myeshop.gr/property/>
     PREFIX pto: <http://www.productontology.org/id/>
@@ -88,7 +93,7 @@ def get_category_products(category) -> list:
         if prop_key in ("cpu_model", "definition"):
             continue
             
-        # Μετατροπή booleans
+        # Μετατροπή των λογικών (boolean) τιμών σε κατανοητό ελληνικό κείμενο
         if str(val).lower() == "true":
             val_str = "Ναι"
         elif str(val).lower() == "false":
@@ -98,7 +103,7 @@ def get_category_products(category) -> list:
             
         product_map[uri][prop_key] = val_str
 
-    # Συνδυάζουμε resolution_width x resolution_height 
+    # Σύνθεση επιμέρους διαστάσεων (πλάτος/ύψος) σε ενιαία μορφή (π.χ. Resolution, VESA)
     for p in product_map.values():
         w = p["props"].pop("resolution_width", None)
         h = p["props"].pop("resolution_height", None)
@@ -112,8 +117,12 @@ def get_category_products(category) -> list:
 
     return list(product_map.values())
 
-#Πλήρεις λεπτομέρειες ενός προϊόντος
 def get_product_details(product_uri, user_id) -> dict:
+    """Ανακτά τις πλήρεις, αναλυτικές πληροφορίες (Details) ενός συγκεκριμένου προϊόντος.
+    Συγκεντρώνει βασικά στοιχεία, ποσοτικές τιμές (συμπεριλαμβανομένων των μονάδων μέτρησης),
+    και ποιοτικά χαρακτηριστικά. Επιπλέον, ελέγχει αν το προϊόν βρίσκεται 
+    ήδη στη λίστα αγαπημένων (wishlist) του τρέχοντος χρήστη.
+    """
     query_basic = f"""
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -153,7 +162,7 @@ def get_product_details(product_uri, user_id) -> dict:
         if bval(b, "os"): os_set.add(bval(b, "os"))
         if bval(b, "color"): color_set.add(bval(b, "color"))
 
-    # Ενώνουμε τις πολλαπλές τιμές με κόμμα (π.χ. "Android, iOS")
+    # Ενοποίηση πολλαπλών διακριτών τιμών (όπως χρώματα) σε ενιαία συμβολοσειρά 
     if os_set: details["os"] = ", ".join(sorted(os_set))
     if color_set: details["color"] = ", ".join(sorted(color_set))
 
@@ -265,7 +274,7 @@ def get_product_details(product_uri, user_id) -> dict:
             "unit": "mm",
         })
 
-    # Ανάκτηση νέων ποιοτικών χαρακτηριστικών (Strings/Booleans)
+    # Εξαγωγή και ενσωμάτωση των ποιοτικών (String/Boolean) χαρακτηριστικών
     query_qual = f"""
     PREFIX prop: <http://www.myeshop.gr/property/>
     SELECT ?pred ?val
@@ -331,7 +340,8 @@ def get_product_details(product_uri, user_id) -> dict:
 
     details["isWishlisted"] = db.is_wishlisted(user_id, product_uri) if user_id else False
 
-    # Ανάκτηση DBpedia link για τον κατασκευαστή
+    # Διαδικασία ταυτοποίησης (Entity Resolution) του κατασκευαστή 
+    # μέσω ιδιότητας owl:sameAs για την ανάκτηση του αντίστοιχου συνδέσμου DBpedia
     brand_uri = details.get("brandURI", "")
     if brand_uri:
         same_as_q = f"""

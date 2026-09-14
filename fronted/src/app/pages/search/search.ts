@@ -32,7 +32,6 @@ export class Search implements OnInit {
       }
     });
 
-    // Κάθε αλλαγή του ?q= ξανατρέχει την αναζήτηση (π.χ. refresh, νέο ερώτημα).
     this.route.queryParams.subscribe(params => {
       const q = (params['q'] ?? '').trim();
       this.searchTerm = q;

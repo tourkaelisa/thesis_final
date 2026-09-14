@@ -37,9 +37,6 @@ img {
   max-width: 100%;
 }
 
-/* --- GLOBAL: smooth εμφάνιση σε ΚΑΘΕ σελίδα (το component που φορτώνει ο router
-   μπαίνει ως επόμενος αδελφός του router-outlet· το animation ξανατρέχει σε κάθε
-   αλλαγή route αυτόματα, χωρίς να χρειάζεται κώδικας ανά σελίδα). --- */
 @keyframes routeFadeSlideUp {
   from {
     opacity: 0;
@@ -72,11 +69,6 @@ input {
   --mdc-elevated-card-container-shape: 8px;
 }
 
-/* ============================================================================
-   GLOBAL PRODUCT CARD — ΕΝΙΑΙΑ εμφάνιση προϊόντων σε ΟΛΕΣ τις σελίδες
-   (αρχική, αναζήτηση, κατηγορίες, αγαπημένα). Όλη η κάρτα είναι clickable
-   link προς το προϊόν· χωρίς ξεχωριστό κουμπί «Προβολή προϊόντος».
-   ============================================================================ */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
@@ -169,7 +161,6 @@ input {
   font-weight: 900;
 }
 
-/* Κουμπί αφαίρεσης από αγαπημένα — overlay πάνω δεξιά στην κάρτα */
 .product-card-remove {
   position: absolute;
   top: 12px;
@@ -208,7 +199,6 @@ input {
   box-shadow: none !important;
 }
 
-/* ── Dashboard: chart mode toggle ── */
 .chart-toggle.mat-button-toggle-group {
   border-radius: 999px;
   overflow: hidden;
@@ -245,7 +235,6 @@ input {
   height: 1.05rem;
 }
 
-/* teal παραλλαγή eshop (δραστηριότητα wishlist) */
 .chart-toggle-rose.mat-button-toggle-group {
   border-color: #99f6e4;
   background: #f0fdfa;
@@ -258,7 +247,6 @@ input {
   background: linear-gradient(135deg, #06b6d4, #0e7490);
 }
 
-/* ── Dashboard: κατανομή engagement (mat-progress-bar) ── */
 .dist-bar.mat-mdc-progress-bar {
   --mdc-linear-progress-active-indicator-color: #0284c7;
   --mdc-linear-progress-track-color: #dbeafe;
@@ -267,7 +255,5 @@ input {
   overflow: hidden;
 }
 
-/* Το theme του Material παρακάμπτει τα παραπάνω variables — στοχεύουμε
-   απευθείας τα εσωτερικά elements (γαλάζιο μπάρα + ανοιχτό track). */
 .dist-bar .mdc-linear-progress__bar-inner { border-color: #0284c7 !important; }
 .dist-bar .mdc-linear-progress__buffer-bar { background-color: #dbeafe !important; }

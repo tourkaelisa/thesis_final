@@ -117,7 +117,6 @@ button.wishlisted {
   background: rgba(20, 184, 166, 0.08) !important;
 }
 
-/* Ευθυγράμμιση εικονιδίου με το κείμενο στο κουμπί αγαπημένων */
 .summary-actions button mat-icon {
   vertical-align: middle;
   margin-right: 6px;
@@ -213,7 +212,6 @@ button.wishlisted {
   border-top: 1px solid rgba(6, 182, 212, 0.2);
 }
 
-/* Τα παρόμοια προϊόντα (συνήθως 3) σε 3 ίσες στήλες που γεμίζουν όλο το πλάτος. */
 .recommendations-section .product-grid {
   grid-template-columns: repeat(3, 1fr);
 }

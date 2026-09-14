@@ -7,7 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-// Ετικέτες εμφάνισης ανά route κατηγορίας (το route key μένει ως έχει για το backend).
+// Ετικέτες εμφάνισης ανά route κατηγορίας 
 const CATEGORY_LABELS: { [key: string]: string } = {
   laptops: 'Laptops',
   mobiles: 'Κινητά',
@@ -93,7 +93,6 @@ export class Category implements OnInit {
 
   private readonly EXCLUDED_PROPS = new Set(['resolution_width', 'resolution_height', 'vesa_width', 'vesa_height']);
 
-  // Κατηγορίες όπου το βάρος μετριέται σε γραμμάρια (αλλιώς σε κιλά).
   private readonly WEIGHT_GRAMS_CATEGORIES = new Set(['mobiles', 'tablets', 'smartwatches']);
 
   constructor(
@@ -125,7 +124,6 @@ export class Category implements OnInit {
     });
   }
 
-  // Ετικέτα ποσοτικού φίλτρου· το βάρος αλλάζει μονάδα ανάλογα με την κατηγορία.
   private quantLabel(key: string): string {
     if (key === 'weight') {
       return this.WEIGHT_GRAMS_CATEGORIES.has(this.categoryName())
@@ -138,7 +136,6 @@ export class Category implements OnInit {
   private buildFilters() {
     const products = this.products();
 
-    // Categorical fields → checkboxes (dynamically detected from product data)
     const NON_FILTER = new Set(['id', 'name', 'image', 'price', 'popularity', 'props']);
     const stringFields = new Set<string>();
     products.forEach(p => {
@@ -157,7 +154,6 @@ export class Category implements OnInit {
     }
     this.filterGroups.set(groups);
 
-    // Quantitative props → range inputs
     const propKeys = new Set<string>();
     products.forEach(p => p.props && Object.keys(p.props).forEach(k => propKeys.add(k)));
 

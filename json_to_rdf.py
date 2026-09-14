@@ -1,10 +1,15 @@
+"""Μετατροπή JSON δεδομένων σε Σημασιολογικό Γράφο (RDF Triplestore).
+Διαβάζει τα καθαρισμένα JSON αρχεία, ταυτοποιεί τις κλάσεις 
+βάσει της Οντολογίας Προϊόντων (PTO), μοντελοποιεί τις σχέσεις χρησιμοποιώντας GoodRelations (gr) και Schema.org, 
+και εξάγει το τελικό αποτέλεσμα σε μορφή Turtle (.ttl).
+"""
 import json
 import os
 import re
 from rdflib import Graph, Literal, RDF, URIRef, Namespace
 from rdflib.namespace import XSD
 
-# 1. NAMESPACES
+# 1. Ορισμός Ονοματοχώρων (Namespaces) για την παραγωγή σημασιολογικών τριπλέτων
 GR = Namespace("http://purl.org/goodrelations/v1#")
 PTO = Namespace("http://www.productontology.org/id/")
 SCHEMA = Namespace("http://schema.org/")
@@ -12,6 +17,9 @@ ESHOP = Namespace("http://www.myeshop.gr/resource/")
 PROP = Namespace("http://www.myeshop.gr/property/")
 
 def get_pto_class(category):
+    """Αντιστοιχίζει το όνομα της κατηγορίας προϊόντος στην κατάλληλη 
+    κλάση (Class) της Οντολογίας Προϊόντων (PTO).
+    """
     cat = category.lower()
     if "laptop" in cat: return PTO.Laptop
     if "κινητά" in cat or "mobile" in cat: return PTO.Smartphone
@@ -25,6 +33,10 @@ def get_pto_class(category):
     return GR.ProductOrService
 
 def create_rdf():
+    """Εκτελεί τη μαζική μετατροπή των JSON δεδομένων σε γράφο RDF.
+    Αναλύει δυναμικά τα ποσοτικά (Quantitative) και ποιοτικά (Qualitative) 
+    χαρακτηριστικά, δημιουργώντας τις απαραίτητες δομές (Nodes) και διασυνδέσεις.
+    """
     g = Graph()
     g.bind("gr", GR)
     g.bind("pto", PTO)
@@ -46,7 +58,8 @@ def create_rdf():
             product_uri = ESHOP[prod_id]
             g.add((product_uri, RDF.type, GR.ProductOrService))
             
-            # Αν η κατηγορία είναι N/A (λόγω του scraper), παίρνουμε την κατηγορία από το όνομα του αρχείου
+            # Χειρισμός ελλιπών δεδομένων: Αν η κατηγορία απουσιάζει ("N/A"), 
+            # εξάγεται αυτόματα από το όνομα του αντίστοιχου αρχείου
             actual_cat = item['category'] if item['category'] != "N/A" else category_tag
             g.add((product_uri, RDF.type, get_pto_class(actual_cat)))
             
@@ -58,7 +71,8 @@ def create_rdf():
 
             brand = item['name'].split()[0]
             
-            # Normalize specific mangled brands from the titles
+            # Κανονικοποίηση (Normalization) συγκεκριμένων προβληματικών 
+            # ονομασιών κατασκευαστών που εξάγονται απευθείας από τον τίτλο
             brand_normalization = {
                 "Audio": "Audio-Technica",
                 "AirPods": "Apple"
@@ -71,10 +85,11 @@ def create_rdf():
 
             specs = item.get('specs', {})
             
-            # --- ΔΥΝΑΜΙΚΗ ΧΑΡΤΟΓΡΑΦΗΣΗ ΧΑΡΑΚΤΗΡΙΣΤΙΚΩΝ ---
+            # --- ΔΥΝΑΜΙΚΗ ΣΗΜΑΣΙΟΛΟΓΙΚΗ ΧΑΡΤΟΓΡΑΦΗΣΗ ΧΑΡΑΚΤΗΡΙΣΤΙΚΩΝ (DYNAMIC SPEC MAPPING) ---
             for spec_key, spec_val in specs.items():
                 
-                # 1. ΠΟΣΟΤΙΚΑ: Αν το κλειδί τελειώνει σε "_num", π.χ. "screen_size_num"
+                # 1. Ποσοτικά Χαρακτηριστικά (Quantitative Values): Δημιουργία κόμβων (nodes) 
+                # βάσει της κλάσης gr:QuantitativeValue (π.χ. screen_size_num)
                 if spec_key.endswith('_num'):
                     base_name = spec_key.replace('_num', '') # βγάζει το "screen_size"
                     unit_key = f"{base_name}_unit" # ψάχνει το "screen_size_unit"
@@ -88,13 +103,14 @@ def create_rdf():
                     g.add((q_val_uri, GR.hasUnitOfMeasurement, Literal(unit_code)))
                     g.add((product_uri, GR.quantitativeProductOrServiceProperty, q_val_uri))
 
-               # 2. ΠΟΙΟΤΙΚΑ: Αγνοεί τα "_unit" και κρατάει τα υπόλοιπα (Κείμενα)
+               # 2. Ποιοτικά Χαρακτηριστικά (Qualitative Values): Διαχείριση κειμένων (Strings) 
+               # και λογικών τιμών (Booleans) αγνοώντας τις μονάδες μέτρησης (_unit)
                 elif not spec_key.endswith('_unit'):
                     clean_key = spec_key.replace('\xa0', ' ').strip()
                     val_str = str(spec_val).strip()
                     
                     if val_str:
-                        # Χωρίζουμε τις τιμές αν υπάρχουν πολλές (π.χ. Android, iOS)
+                        # Διαχωρισμός πολλαπλών τιμών σε διακριτές εγγραφές (π.χ. "Android, iOS")
                         values_list = [v.strip() for v in val_str.replace('/', ',').split(',')]
                         
                         for v in values_list:
@@ -104,13 +120,13 @@ def create_rdf():
                                 g.add((product_uri, SCHEMA.color, Literal(v, lang="el")))
                                 
                             elif "Έτος Κυκλοφορίας" in clean_key:
-                                # Ψάχνουμε για 4 συνεχόμενα ψηφία που ξεκινούν με 19 ή 20
+                                # Εντοπισμός έτους κυκλοφορίας (4 ψηφία που ξεκινούν με 19 ή 20)
                                 year_match = re.search(r'\b(19|20)\d{2}\b', v)
                                 if year_match:
-                                    # Χρήση xsd:gYear για σωστή σημασιολογική αρχειοθέτηση
+                                    # Χρήση του τύπου δεδομένων xsd:gYear για ορθή σημασιολογική αναπαράσταση
                                     g.add((product_uri, SCHEMA.releaseDate, Literal(year_match.group(), datatype=XSD.gYear)))
                                 else:
-                                    # Fallback σε κείμενο αν η τιμή είναι περίεργη
+                                    # Εναλλακτική λύση (Fallback) σε απλό κείμενο εάν η μορφοποίηση δεν είναι τυπική
                                     g.add((product_uri, SCHEMA.releaseDate, Literal(v, lang="el")))
                                     
                             elif "Λειτουργικό Σύστημα" in clean_key or "Λογισμικό" in clean_key:
@@ -169,7 +185,7 @@ def create_rdf():
                                 if isinstance(spec_val, bool):
                                     g.add((product_uri, PROP.is_portable, Literal(spec_val, datatype=XSD.boolean)))
                             
-            # ΤΙΜΗ & ΠΡΟΣΦΟΡΑ
+            # --- ΑΝΑΠΑΡΑΣΤΑΣΗ ΤΙΜΗΣ & ΕΜΠΟΡΙΚΗΣ ΠΡΟΣΦΟΡΑΣ (PRICING & OFFERING) ---
             price_spec = ESHOP[f"price_{prod_id}"]
             g.add((price_spec, RDF.type, GR.UnitPriceSpecification))
             g.add((price_spec, GR.hasCurrencyValue, Literal(item['price'], datatype=XSD.float)))

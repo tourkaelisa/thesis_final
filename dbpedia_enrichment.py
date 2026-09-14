@@ -1,19 +1,29 @@
+"""Διαδικασία Σημασιολογικού Εμπλουτισμού (Semantic Enrichment).
+Συνδέει τα τοπικά δεδομένα κατασκευαστών (Brands)
+του ηλεκτρονικού καταστήματος με την παγκόσμια βάση γνώσεων της DBpedia.
+Μέσω SPARQL endpoints, αντλεί επιπλέον πληροφορίες (π.χ. Έτος Ίδρυσης, Έδρα)
+και διασυνδέει τις οντότητες κάνοντας χρήση της ιδιότητας owl:sameAs (Linked Data).
+"""
 import os
 import time
 from rdflib import Graph, URIRef, Literal, Namespace
 from SPARQLWrapper import SPARQLWrapper, JSON
 
-# Ορίζουμε τα Namespaces
+# Καθορισμός των Ονοματοχώρων (Namespaces) για την οντολογία
 SCHEMA = Namespace("http://schema.org/")
 OWL = Namespace("http://www.w3.org/2002/07/owl#")
 ESHOP = Namespace("http://www.myeshop.gr/resource/")
 
-# Σύνδεση με τον Server της DBpedia με Timeout 60 δευτερολέπτων
+# Αρχικοποίηση Σύνδεσης (SPARQL Endpoint) με τη βάση γνώσεων DBpedia (με όριο απόκρισης 60 δευτερόλεπτα)
 sparql = SPARQLWrapper("https://dbpedia.org/sparql")
 sparql.setTimeout(60)
 sparql.agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 
 def enrich_graph():
+    """Εκτελεί τη διαδικασία σημασιολογικού εμπλουτισμού του τοπικού γράφου.
+    Διαβάζει το βασικό αρχείο RDF, ταυτοποιεί τους κατασκευαστές, ανακτά δεδομένα 
+    από την DBpedia, και αποθηκεύει το νέο, εμπλουτισμένο γράφημα.
+    """
     print("Φόρτωση του υπάρχοντος Γράφου...")
     g = Graph()
     
@@ -23,7 +33,7 @@ def enrich_graph():
         
     g.parse("data/master_eshop_fixed.ttl", format="turtle")
     
-    # 1. Βρίσκουμε όλες τις μοναδικές μάρκες (αποθηκευμένες ως URIs: eshop:Brand_Apple)
+    # 1. Εξαγωγή όλων των μοναδικών κατασκευαστών (Brands) από τα υπάρχοντα URIs (π.χ. eshop:Brand_Apple)
     brands = {}  # brand_name -> brand_uri_node
     for s, p, o in g.triples((None, SCHEMA.manufacturer, None)):
         uri_str = str(o)
@@ -33,7 +43,7 @@ def enrich_graph():
 
     print(f"Βρέθηκαν {len(brands)} μοναδικές μάρκες στο e-shop.\n")
 
-    # 2. Λεξικό Αντιστοίχισης
+    # 2. Λεξικό Αντιστοίχισης (Entity Mapping) μεταξύ τοπικών Brands και DBpedia URIs
     brand_uris = {
         "Apple": "http://dbpedia.org/resource/Apple_Inc.",
         "Samsung": "http://dbpedia.org/resource/Samsung_Electronics",
@@ -86,13 +96,13 @@ def enrich_graph():
         "Koss": "http://dbpedia.org/resource/Koss_Corporation"
     }
     
-    # 3. Εμπλουτισμός από DBpedia
+    # 3. Σημασιολογικός Εμπλουτισμός (Semantic Enrichment) μέσω του DBpedia SPARQL Endpoint
     for brand_name, brand_node in brands.items():
         if brand_name in brand_uris:
             dbpedia_uri = brand_uris[brand_name]
             print(f"Σύνδεση με DBpedia για: {brand_name}...")
 
-            # SPARQL Ερώτημα για Έτος Ίδρυσης, Τοποθεσία και Έδρα
+            # Εκτέλεση ερωτήματος SPARQL για την άντληση συμπληρωματικών δεδομένων (Έτος Ίδρυσης, Τοποθεσία, Έδρα)
             query = f"""
             PREFIX dbo: <http://dbpedia.org/ontology/>
             SELECT ?foundingYear ?location ?headquarter
@@ -106,7 +116,7 @@ def enrich_graph():
             sparql.setQuery(query)
             sparql.setReturnFormat(JSON)
 
-            # Τα brands είναι ήδη URIs στον γράφο — προσθέτουμε απευθείας sameAs και name
+            # Διασύνδεση (Linked Data): Προσθήκη της σχέσης owl:sameAs για την απόλυτη ταύτιση των οντοτήτων
             g.add((brand_node, OWL.sameAs, URIRef(dbpedia_uri)))
             g.add((brand_node, SCHEMA.name, Literal(brand_name, lang="en")))
             
@@ -141,7 +151,7 @@ def enrich_graph():
             except Exception as e:
                 print(f"  -> Σφάλμα/Timeout επικοινωνίας για {brand_name}: Προχωράμε στην επόμενη...")
             
-            # Προστασία από Rate Limiting της DBpedia
+            # Επιβολή καθυστέρησης προς αποφυγή υπερφόρτωσης του server της DBpedia 
             time.sleep(0.5)
 
     print("\nΑποθήκευση του Εμπλουτισμένου Γράφου...")

@@ -1,3 +1,8 @@
+"""Μηχανή Συστάσεων (Recommendation Engine) βασισμένη σε Περιεχόμενο (Content-Based Filtering).
+Ανακτά χαρακτηριστικά (features) των προϊόντων μέσω ερωτημάτων SPARQL στον σημασιολογικό 
+γράφο, εφαρμόζει κανονικοποίηση (MinMaxScaler) και εξαγωγή μεταβλητών δείκτριας (One-Hot Encoding), 
+και υπολογίζει τη μήτρα ομοιότητας (Cosine Similarity Matrix) για κάθε κατηγορία προϊόντων.
+"""
 import rdflib
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
@@ -7,6 +12,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 def build_laptop_recommendation_model(rdf_graph):
+    """Κατασκευάζει το μοντέλο συστάσεων για Φορητούς Υπολογιστές (Laptops)
+    αντλώντας δεδομένα από την κλάση pto:Laptop.
+    """
     query = """
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -100,6 +108,9 @@ def build_laptop_recommendation_model(rdf_graph):
     return df_similarity, laptop_names_dict
 
 def build_mobile_recommendation_model(rdf_graph):
+    """Κατασκευάζει το μοντέλο συστάσεων για Έξυπνα Κινητά (Smartphones)
+    αντλώντας δεδομένα από την κλάση pto:Smartphone.
+    """
     query = """
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -199,6 +210,9 @@ def build_mobile_recommendation_model(rdf_graph):
     return df_similarity, mobile_names_dict
 
 def build_tablet_recommendation_model(rdf_graph):
+    """Κατασκευάζει το μοντέλο συστάσεων για Ταμπλέτες (Tablets)
+    αντλώντας δεδομένα από την κλάση pto:Tablet_computer.
+    """
     query = """
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -304,6 +318,9 @@ def build_tablet_recommendation_model(rdf_graph):
     return df_similarity, tablet_names_dict
 
 def build_tv_recommendation_model(rdf_graph):
+    """Κατασκευάζει το μοντέλο συστάσεων για Τηλεοράσεις (TVs)
+    αντλώντας δεδομένα από την κλάση pto:Television_set.
+    """
     query = """
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -387,6 +404,9 @@ def build_tv_recommendation_model(rdf_graph):
     return df_similarity, tv_names_dict
 
 def build_smartwatch_recommendation_model(rdf_graph):
+    """Κατασκευάζει το μοντέλο συστάσεων για Έξυπνα Ρολόγια (Smartwatches)
+    αντλώντας δεδομένα από την κλάση pto:Smartwatch.
+    """
     query = """
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -481,6 +501,11 @@ def build_smartwatch_recommendation_model(rdf_graph):
     return df_similarity, sw_names_dict
 
 def get_recommendations(target_uri, df_similarity, names_dict, top_n=3):
+    """Επιστρέφει τα κορυφαία σε ομοιότητα προϊόντα για ένα δεδομένο προϊόν (Item-to-Item Recommendations).
+    
+    Χρησιμοποιεί την προϋπολογισμένη μήτρα ομοιότητας (Cosine Similarity Matrix) για
+    γρήγορη ανάκτηση O(1) χωρίς επανυπολογισμούς σε πραγματικό χρόνο.
+    """
     if target_uri not in df_similarity.index:
         return {"error": "Το προϊόν δεν βρέθηκε στη βάση."}
 
@@ -500,13 +525,12 @@ def get_recommendations(target_uri, df_similarity, names_dict, top_n=3):
 
 
 def get_personalized_recommendations(wishlist_uris, models, per_item=3):
-    """Εξατομικευμένες προτάσεις από τη λίστα αγαπημένων ενός χρήστη (καθαρή λογική).
+    """Παράγει εξατομικευμένες προτάσεις με βάση τη λίστα αγαπημένων του χρήστη.
 
-    Για ΚΑΘΕ αγαπημένο επιστρέφει τα top-`per_item` όμοιά του (προεπιλογή 3).
-    Δηλαδή N αγαπημένα -> έως N*per_item προτάσεις (π.χ. 2 αγαπημένα -> 6, 3 για
-    το καθένα). Οι προτάσεις εναλλάσσονται (round-robin) ώστε οι κατηγορίες να
-    μην εμφανίζονται σε μπλοκ. Αποκλείει ό,τι είναι ήδη στη wishlist και αποφεύγει
-    διπλότυπα. Επιστρέφει λίστα από URIs — χωρίς πρόσβαση σε βάση/GraphDB.
+    Για κάθε προϊόν στη λίστα αγαπημένων (wishlist), ανακτά τα N (προεπιλογή 3)
+    πιο παρόμοια προϊόντα. Εφαρμόζει πολιτική εναλλαγής (round-robin) ώστε να 
+    προσφέρει πολυφωνία στις κατηγορίες, ενώ απορρίπτει διπλότυπα προϊόντα ή 
+    προϊόντα που ήδη βρίσκονται στη λίστα του χρήστη.
     """
     wishlist_set = set(wishlist_uris)
     seen = set()
@@ -547,6 +571,9 @@ def get_personalized_recommendations(wishlist_uris, models, per_item=3):
 
 
 def build_desktop_recommendation_model(rdf_graph):
+    """Κατασκευάζει το μοντέλο συστάσεων για Σταθερούς Υπολογιστές (Desktops)
+    αντλώντας δεδομένα από την κλάση pto:Desktop_computer.
+    """
     query = """
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -637,6 +664,9 @@ def build_desktop_recommendation_model(rdf_graph):
 
 
 def build_monitor_recommendation_model(rdf_graph):
+    """Κατασκευάζει το μοντέλο συστάσεων για Οθόνες (Monitors)
+    αντλώντας δεδομένα από την κλάση pto:Computer_monitor.
+    """
     query = """
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -731,6 +761,9 @@ def build_monitor_recommendation_model(rdf_graph):
 
 
 def build_console_recommendation_model(rdf_graph):
+    """Κατασκευάζει το μοντέλο συστάσεων για Κονσόλες Παιχνιδιών (Game Consoles)
+    αντλώντας δεδομένα από την κλάση pto:Game_console.
+    """
     query = """
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>
@@ -815,6 +848,9 @@ def build_console_recommendation_model(rdf_graph):
 
 
 def build_headphone_recommendation_model(rdf_graph):
+    """Κατασκευάζει το μοντέλο συστάσεων για Ακουστικά (Headphones)
+    αντλώντας δεδομένα από την κλάση pto:Headphones.
+    """
     query = """
     PREFIX gr: <http://purl.org/goodrelations/v1#>
     PREFIX schema1: <http://schema.org/>

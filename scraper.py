@@ -1,3 +1,8 @@
+"""Μηχανισμός Συλλογής Δεδομένων (Web Scraper) μέσω Selenium & BeautifulSoup.
+Αυτοματοποιεί την άντληση (scraping) πραγματικών δεδομένων από το ηλεκτρονικό 
+κατάστημα (Skroutz). Ενσωματώνει τεχνικές αποφυγής ανίχνευσης (Anti-Bot Evasion) 
+και εξάγει δυναμικά τίτλους, τιμές, κατηγορίες και αναλυτικά τεχνικά χαρακτηριστικά.
+"""
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -6,7 +11,7 @@ import time
 import json
 import random
 
-# --- ΡΥΘΜΙΣΕΙΣ ---
+# ΠΑΡΑΜΕΤΡΟΠΟΙΗΣΗ ΣΥΣΤΗΜΑΤΟΣ (CONFIGURATION) 
 INPUT_FILE = 'data/urls.txt'
 OUTPUT_FILE = 'data/real_products_data.json'
 
@@ -20,10 +25,10 @@ except FileNotFoundError:
     print(f"Δεν βρέθηκε το αρχείο {INPUT_FILE}!")
     product_urls = []
 
-# Εκκίνηση Browser
+# ΑΡΧΙΚΟΠΟΙΗΣΗ ΠΡΟΓΡΑΜΜΑΤΟΣ ΠΕΡΙΗΓΗΣΗΣ (BROWSER INITIALIZATION)
 options = webdriver.ChromeOptions()
 options.add_argument("--start-maximized")
-# Απενεργοποίηση κάποιων automation flags (αποφυγη μπλοκαρισμων)
+# Παράκαμψη μηχανισμών ανίχνευσης Bots (Anti-Bot Evasion)
 options.add_argument("--disable-blink-features=AutomationControlled") 
 options.add_experimental_option("excludeSwitches", ["enable-automation"]) 
 options.add_experimental_option("useAutomationExtension", False) 
@@ -32,7 +37,7 @@ if product_urls:
     print("Εκκίνηση του Chrome Driver...")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     
-    # --- ΒΗΜΑ 1: ΧΕΙΡΟΚΙΝΗΤΗ ΕΙΣΟΔΟΣ ---
+    # ΦΑΣΗ 1: ΧΕΙΡΟΚΙΝΗΤΗ ΕΙΣΟΔΟΣ ΚΑΙ ΕΠΙΛΥΣΗ CAPTCHA (MANUAL OVERRIDE)
     print("\n" + "="*60)
     print("ΣΤΟΠ! Ο Browser άνοιξε.")
     print("Πήγαινε στο παράθυρο του Chrome.")
@@ -41,7 +46,7 @@ if product_urls:
     print("Μόλις είσαι έτοιμος και βλέπεις κανονικά τη σελίδα, έλα εδώ και ΠΑΤΑ ENTER.")
     print("="*60 + "\n")
     
-    # Πηγαίνουμε στην αρχική για να κάνεις login/captcha
+    # αρχική για login/captcha
     driver.get("https://www.skroutz.gr") 
     input("Πάτα ENTER εδώ όταν είσαι έτοιμος να ξεκινήσεις...")
 
@@ -53,17 +58,17 @@ if product_urls:
             
             driver.get(url)
             
-            # Έλεγχος αν πετάχτηκε CAPTCHA
+            # Εντοπισμός και Διαχείριση Μηχανισμών CAPTCHA / Cloudflare
             if "robot" in driver.title or "επιβεβαίωση" in driver.title or "Just a moment" in driver.title:
                 print("\nΕΝΤΟΠΙΣΤΗΚΕ CAPTCHA")
-                import winsound; winsound.Beep(1000, 500) # Κάνει ήχο μπιπ
+                import winsound; winsound.Beep(1000, 500) 
                 print("Λύσε το CAPTCHA στον Chrome και μετά πάτα ENTER εδώ για να συνεχίσω...")
-                input() # Περιμένει να πατήσεις Enter
+                input() 
             
-            # Τυχαία αναμονή
+            # Εισαγωγή τυχαίας καθυστέρησης (Randomized Delay) για προσομοίωση ανθρώπινης συμπεριφοράς
             time.sleep(random.uniform(5, 8))
             
-            # Scroll
+            # Δυναμική Κύλιση (Dynamic Scrolling) για την πλήρη φόρτωση των Lazy-Loaded στοιχείων (εικόνες/specs)
             driver.execute_script("window.scrollTo(0, 800);")
             time.sleep(1)
             driver.execute_script("window.scrollTo(0, 1600);")
@@ -71,27 +76,23 @@ if product_urls:
             
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             
-            # Τίτλος
+            # 1. Εξαγωγή Τίτλου Προϊόντος μέσω Open Graph Tags
             title_tag = soup.find("meta", property="og:title")
             title = title_tag["content"] if title_tag else "N/A"
             
             # Αν δεν φόρτωσε
             if title == "N/A":
                 print("Η σελίδα δεν φόρτωσε σωστά. (Δοκίμασε να αυξήσεις το χρόνο αναμονής)")
-                # Εδώ δίνουμε άλλη μια ευκαιρία στο χρήστη αν θέλει να δει τι έγινε
-                # input("Πάτα Enter για να προσπεράσω αυτό το προϊόν...") 
                 continue
 
-            # Τιμή
-            #price_tag = soup.find("meta", attrs={"name": "twitter:data1"})
-            #price = price_tag["content"].replace(" €", "").replace(",", ".") if price_tag else "0.0"
+            # 2. Εξαγωγή Τιμής με πολλαπλούς εναλλακτικούς μηχανισμούς (Fallbacks)
             price = "0.0"
             
-            # Plan A: Ψάχνει το παλιό twitter tag
+            # Μέθοδος Α: Αναζήτηση μέσω Twitter Cards
             price_tag_1 = soup.find("meta", attrs={"name": "twitter:data1"})
-            # Plan B: Ψάχνει το νέο στάνταρ SEO tag (product:price:amount)
+            # Μέθοδος Β: Αναζήτηση μέσω τυπικών SEO Tags (Schema.org / Open Graph)
             price_tag_2 = soup.find("meta", property="product:price:amount")
-            # Plan C: Ψάχνει το κλασικό tag (itemprop="price")
+            # Μέθοδος Γ: Αναζήτηση μέσω Microdata (itemprop)
             price_tag_3 = soup.find(attrs={"itemprop": "price"})
             
             if price_tag_1 and "content" in price_tag_1.attrs:
@@ -101,7 +102,7 @@ if product_urls:
             elif price_tag_3 and "content" in price_tag_3.attrs:
                 price = price_tag_3["content"].replace(",", ".")
 
-            # Κατηγορία
+            # 3. Εξαγωγή Κατηγορίας (Taxonomy Extraction)
             category = "N/A"
             
             # Plan A: Το παλιό meta tag
@@ -114,7 +115,7 @@ if product_urls:
             elif cat_tag_2 and "content" in cat_tag_2.attrs:
                 category = cat_tag_2["content"]
             else:
-                # Plan C: Διάβασμα από τα Breadcrumbs (τη διαδρομή σελίδας)
+                # Μέθοδος Γ: Εξαγωγή μέσω Δομής Πλοήγησης (Breadcrumb Trail Extraction)
                 # Βρίσκει όλα τα στοιχεία της διαδρομής
                 breadcrumbs = soup.find_all("li", itemprop="itemListElement")
                 if breadcrumbs and len(breadcrumbs) >= 2:
@@ -123,13 +124,11 @@ if product_urls:
                 elif breadcrumbs:
                     category = breadcrumbs[-1].text.strip()
 
-            # Κατηγορία & Εικόνα
-            #cat_tag = soup.find("meta", itemprop="category")
-            #category = cat_tag["content"] if cat_tag else "N/A"
+            # 4. Εξαγωγή Κύριας Εικόνας (Main Image Extraction)
             img_tag = soup.find("meta", property="og:image")
             image = img_tag["content"] if img_tag else ""
 
-            # Specs
+            # 5. Δυναμική Εξαγωγή Τεχνικών Χαρακτηριστικών (Specifications Scraping)
             specs_data = {}
             specs_container = soup.find('div', id='specs')
             if specs_container:

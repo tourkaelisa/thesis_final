@@ -1,23 +1,27 @@
-#Κεντρικές ρυθμίσεις του backend
+"""Κεντρικό Αρχείο Ρυθμίσεων (Configuration) του Backend της εφαρμογής."""
 import os
 import secrets
 
-# Διαδρομές αρχείων / endpoints
-RDF_FILE_PATH = "data/master_eshop_enriched.ttl" #τα δεδομένα με την DBpedia διασυνδεση
+# Βασικές διαδρομές αρχείων και endpoints
+RDF_FILE_PATH = "data/master_eshop_enriched.ttl"  # Τοπικό αρχείο δεδομένων RDF (συμπεριλαμβάνει τις διασυνδέσεις με την DBpedia)
 DATABASE_PATH = "users.db"
-# Σε Docker δίνεται μέσω env (service name: graphdb)· τοπικά πέφτει σε localhost.
+
+# URL του GraphDB. Σε περιβάλλον Docker αντλείται από τις μεταβλητές περιβάλλοντος (env), 
+# διαφορετικά χρησιμοποιείται η προεπιλεγμένη τοπική διεύθυνση (localhost).
 GRAPHDB_ENDPOINT = os.environ.get(
     "GRAPHDB_ENDPOINT", "http://localhost:7200/repositories/eshop_thesis"
 )
 
-
-# JWT
+# Παράμετροι Αυθεντικοποίησης μέσω JSON Web Token (JWT)
 def _load_jwt_secret() -> str:
-    """Σταθερό JWT secret ώστε τα tokens να επιβιώνουν στα restarts.
+    """Ανακτά ή δημιουργεί ένα σταθερό μυστικό κλειδί (JWT secret) 
+    ώστε τα tokens των χρηστών να παραμένουν έγκυρα μεταξύ των επανεκκινήσεων του διακομιστή.
 
-    Προτεραιότητα: μεταβλητή περιβάλλοντος JWT_SECRET. Αλλιώς, διαβάζεται/
-    δημιουργείται ένα τοπικό αρχείο (.jwt_secret) — έτσι κάθε επανεκκίνηση του
-    server δεν ακυρώνει τα ήδη εκδομένα tokens (δηλ. δεν «πετάει έξω» τους χρήστες).
+    Ροή Εκτέλεσης:
+    1. Έλεγχος για μεταβλητή περιβάλλοντος JWT_SECRET.
+    2. Εάν απουσιάζει, διαβάζεται (ή δημιουργείται) το τοπικό αρχείο '.jwt_secret'.
+    Αυτή η προσέγγιση διασφαλίζει ότι μια επανεκκίνηση του server δεν αποσυνδέει (kick out) 
+    τους ήδη συνδεδεμένους χρήστες.
     """
     env = os.environ.get("JWT_SECRET")
     if env:
@@ -37,7 +41,7 @@ def _load_jwt_secret() -> str:
         with open(secret_file, "w", encoding="utf-8") as f:
             f.write(new_secret)
     except OSError:
-        pass  # Αν δεν γράφεται, πέφτουμε σε in-memory secret (όπως πριν).
+        pass  # Αν δεν γράφεται, πέφτουμε σε in-memory secret
     return new_secret
 
 
@@ -45,10 +49,12 @@ JWT_SECRET = _load_jwt_secret()
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = 2
 
-# Διαχειριστής (προάγεται αυτόματα σε admin στο startup)
+# Προεπιλεγμένο email Διαχειριστή. Κατά την εκκίνηση του συστήματος, 
+# ο συγκεκριμένος λογαριασμός προάγεται αυτόματα σε ρόλο Admin (role=2).
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "elisatourka@gmail.com")
 
-# Αντιστοίχιση route κατηγορίας -> κλάση PTO 
+# Αντιστοίχιση μεταξύ των εσωτερικών ονομασιών (routes) των κατηγοριών του Frontend 
+# και των αντίστοιχων σημασιολογικών κλάσεων της Οντολογίας Προϊόντων (Product Ontology)
 CATEGORY_CLASSES = {
     "laptops": "pto:Laptop",
     "mobiles": "pto:Smartphone",

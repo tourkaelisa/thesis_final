@@ -1,6 +1,6 @@
-"""FastAPI backend: REST endpoints (αυθεντικοποίηση) + WebSocket dispatcher.
-
-η ρύθμιση της εφαρμογής, το startup και η δρομολόγηση των αιτημάτων του WebSocket.
+"""Κεντρικός Διακομιστής (Backend) με χρήση του πλαισίου FastAPI.
+Υλοποιεί τα σημεία τερματισμού REST (αυθεντικοποίηση/εγγραφή χρηστών) και ένα κεντρικό
+σύστημα δρομολόγησης (dispatcher) μέσω WebSockets για επικοινωνία πραγματικού χρόνου.
 """
 import os
 import sqlite3
@@ -31,10 +31,11 @@ app = FastAPI()
 
 
 def authenticated_user_id(data) -> int | None:
-    """Επιστρέφει το user_id από το έγκυρο JWT του μηνύματος· αλλιώς None.
+    """Εξάγει και επιστρέφει το αναγνωριστικό χρήστη (user_id) από ένα έγκυρο JSON Web Token (JWT).
 
-    Η ταυτότητα προκύπτει αποκλειστικά από το υπογεγραμμένο token, ποτέ από
-    πεδίο που στέλνει ο client (π.χ. userId), ώστε να μην μπορεί να πλαστογραφηθεί.
+    Για λόγους ασφαλείας, η ταυτότητα του χρήστη επιβεβαιώνεται αποκλειστικά από 
+    την κρυπτογραφική υπογραφή του token, αποτρέποντας απόπειρες πλαστογράφησης 
+    μέσω παραποίησης των δεδομένων του client.
     """
     payload = verify_token(data.get("token") or "")
     if not payload:
@@ -46,7 +47,7 @@ def authenticated_user_id(data) -> int | None:
 
 
 def is_admin(data) -> bool:
-    """True μόνο αν το token είναι έγκυρο και ο ρόλος είναι διαχειριστής (role = 2)."""
+    """Επαληθεύει εάν ο τρέχων χρήστης διαθέτει δικαιώματα Διαχειριστή (role = 2)."""
     payload = verify_token(data.get("token") or "")
     return bool(payload) and payload.get("role") == 2
 
@@ -68,9 +69,10 @@ async def startup_event():
         print(f"Warning: Could not set admin role: {e}")
     print(f"SQLite users database ready: {DATABASE_PATH}")
 
-    # Ο in-memory γράφος (rdflib) χρησιμοποιείται μονο στο startup: για το χτίσιμο
-    # των μοντέλων συστάσεων και το αρχικό seeding δημοτικότητας. Όλα τα ερωτήματα
-    # που εξυπηρετούν τον client πραγματικού χρόνου πηγαίνουν στο GraphDB.
+    # Σημασιολογικός Γράφος Μνήμης (In-Memory RDF Graph): Φορτώνεται μόνο κατά 
+    # την εκκίνηση του συστήματος προκειμένου να κατασκευαστούν τα μοντέλα μηχανικής 
+    # μάθησης (Συστήματα Συστάσεων) και να συγχρονιστούν οι αρχικές μετρικές δημοτικότητας.
+    # Τα αιτήματα των πελατών σε πραγματικό χρόνο δρομολογούνται απευθείας στο GraphDB.
     print("Φόρτωση RDF στη μνήμη (μόνο για μηχανή συστάσεων & seeding)...")
     if os.path.exists(RDF_FILE_PATH):
         rdf_graph = rdflib.Graph()
@@ -83,7 +85,7 @@ async def startup_event():
         print(f"Σφάλμα: Το αρχείο {RDF_FILE_PATH} δεν βρέθηκε!")
 
 
-# REST: Auth
+# ΥΠΗΡΕΣΙΕΣ REST: ΑΥΘΕΝΤΙΚΟΠΟΙΗΣΗ & ΔΙΑΧΕΙΡΙΣΗ ΧΡΗΣΤΩΝ 
 @app.post("/api/register", status_code=201)
 async def register_user(user: UserRegistration):
     if not user.terms:
@@ -103,7 +105,8 @@ async def register_user(user: UserRegistration):
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409, detail="Email already exists.")
 
-    # Live push: η νέα εγγραφή μεταβάλλει τους δείκτες χρηστών/εγγραφών στο dashboard.
+    # Ενημέρωση Πραγματικού Χρόνου (Live Push): Εκπομπή μηνύματος (broadcast) στους 
+    # διαχειριστές για την ανανέωση των στατιστικών εγγραφών (dashboard metrics).
     await realtime.hub.broadcast_stats()
 
     return {
@@ -134,7 +137,7 @@ async def login_user(credentials: UserLogin):
     }
 
 
-# WebSocket dispatcher
+# ΔΡΟΜΟΛΟΓΗΤΗΣ WEBSOCKET (REAL-TIME DISPATCHER)
 @app.websocket("/ws/shop")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -143,16 +146,15 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_json()
             action = data.get("action")
 
-            # 0. Έλεγχος token: αν το αίτημα κουβαλάει token που είναι παρόν αλλά
-            # ΑΚΥΡΟ (ληγμένο ή με ξεπερασμένη υπογραφή μετά από αλλαγή secret),
-            # ειδοποιούμε τον client να κάνει logout αντί να γυρνάμε σιωπηλά άδεια
-            # δεδομένα. Τα ανώνυμα αιτήματα (χωρίς token) δεν επηρεάζονται.
+            # 0. Έλεγχος Ασφαλείας Token (Authentication Check): Σε περίπτωση που το token 
+            # είναι άκυρο ή ληγμένο, εκπέμπεται ειδικό μήνυμα "AUTH_INVALID" ώστε ο client 
+            # να αποσυνδεθεί ομαλά. Αιτήματα χωρίς καθόλου token (ανώνυμοι χρήστες) εξυπηρετούνται κανονικά.
             token = data.get("token")
             if token and not verify_token(token):
                 await websocket.send_json({"type": "AUTH_INVALID"})
                 continue
 
-            # 1. Προϊόντα κατηγορίας
+            # 1. Ανάκτηση Προϊόντων ανά Κατηγορία (Category Browsing)
             if action == "get_category":
                 category = data.get("category")
                 if category in CATEGORY_CLASSES:
@@ -163,7 +165,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         print(f"GraphDB error in get_category: {e}")
                         await websocket.send_json({"type": "CATEGORY_UPDATED", "products": []})
 
-            # 2. Λεπτομέρειες προϊόντος
+            # 2. Αναλυτικά Στοιχεία Προϊόντος (Product Details)
             elif action == "get_product_details":
                 try:
                     details = catalog.get_product_details(data.get("productId"), authenticated_user_id(data))
@@ -173,23 +175,23 @@ async def websocket_endpoint(websocket: WebSocket):
                     traceback.print_exc()
                     await websocket.send_json({"type": "PRODUCT_DETAILS", "product": {"specs": [], "name": "Σφάλμα Φόρτωσης"}})
 
-            # 3. Δημοφιλέστερα προϊόντα (top 8 της αρχικής)
+            # 3. Κορυφαία σε Δημοτικότητα Προϊόντα (Trending Products)
             elif action == "get_popular_products":
                 products = analytics.get_popular_products()
                 await websocket.send_json({"type": "POPULAR_PRODUCTS", "products": products})
 
-            # 4. Στατιστικά dashboard (μόνο διαχειριστής)
+            # 4. Μετρικές Πίνακα Ελέγχου (Dashboard Analytics - Αποκλειστικά για Διαχειριστές)
             elif action == "get_dashboard_stats":
                 if not is_admin(data):
                     await websocket.send_json({"type": "ERROR", "message": "Δεν έχετε δικαίωμα πρόσβασης."})
                 else:
-                    # Καταχωρούμε τη σύνδεση ως admin-συνδρομητή ώστε να λαμβάνει
-                    # και τις live ενημερώσεις (push) όταν αλλάζουν τα δεδομένα.
+                    # Εγγραφή της σύνδεσης (WebSocket) ως διαχειριστή-συνδρομητή (subscriber)
+                    # ώστε να λαμβάνει ζωντανά δεδομένα (push notifications) με τις νέες αλλαγές.
                     realtime.hub.register(websocket)
                     stats = analytics.get_dashboard_stats()
                     await websocket.send_json({"type": "DASHBOARD_STATS", **stats})
 
-            # 5. Wishlist / δημοτικότητα (απαιτείται σύνδεση)
+            # 5. Διαχείριση Λίστας Αγαπημένων & Μετρικών Δημοτικότητας (Wishlist Management)
             elif action == "add_to_wishlist":
                 user_id = authenticated_user_id(data)
                 product_uri = data.get("productId")
@@ -227,7 +229,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Live push: η αφαίρεση μεταβάλλει δημοτικότητα/engagement/churn.
                     await realtime.hub.broadcast_stats()
 
-            # 6. φίλτρα
+            # 6. Σύνθετη Αναζήτηση με Φίλτρα (Faceted Search)
             elif action == "search_category":
                 category = data.get("category")
                 if category not in CATEGORY_CLASSES:
@@ -246,7 +248,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         print(f"GraphDB error: {e}")
                         await websocket.send_json({"type": "SEARCH_RESULTS", "products": [], "error": str(e)})
 
-            # 7. Προτάσεις όμοιων προϊόντων (item-to-item)
+            # 7. Συστήματα Συστάσεων: Παρόμοια Προϊόντα (Item-Based Recommendations)
             elif action == "get_recommendations":
                 try:
                     formatted = recommendations.get_similar_products(data.get("productId"))
@@ -257,7 +259,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 except Exception as e:
                     print(f"Σφάλμα στα recommendations: {e}")
 
-            # 8. Εξατομικευμένες προτάσεις (βάσει wishlist)
+            # 8. Συστήματα Συστάσεων: Εξατομικευμένες Προτάσεις (Personalized Recommendations)
             elif action == "get_personalized_recommendations":
                 try:
                     user_id = authenticated_user_id(data)
@@ -274,7 +276,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     print(f"Σφάλμα στα personalized recommendations: {e}")
                     await websocket.send_json({"type": "PERSONALIZED_RECOMMENDATIONS", "products": []})
 
-            # 9. Αναζήτηση λέξης-κλειδιού (όνομα + μάρκα) πάνω στο GraphDB
+            # 9. Σημασιολογική Αναζήτηση Λέξεων-Κλειδιών (Keyword Search) μέσω SPARQL
             elif action == "keyword_search":
                 query = data.get("query", "")
                 try:
@@ -301,5 +303,5 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"Απροσδόκητο σφάλμα: {e}")
         traceback.print_exc()
     finally:
-        # Όποια κι αν ήταν η αιτία εξόδου, αποσύρουμε τη σύνδεση από τους admins.
+        # Αποεγγραφή (Unregister) του WebSocket για αποφυγή διαρροών μνήμης (Memory Leaks)
         realtime.hub.unregister(websocket)

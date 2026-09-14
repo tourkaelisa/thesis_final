@@ -37,9 +37,11 @@ def generate_random_date(start_days_ago, end_days_ago):
 def seed_database():
     with get_db_connection() as conn:
         print("Διαγραφή παλιών δοκιμαστικών χρηστών (role = 1) και των wishlists τους...")
+
         # Διαγραφή παλιών wishlists από χρήστες που δεν είναι admin
         conn.execute("DELETE FROM wishlist WHERE user_id IN (SELECT id FROM users WHERE role = 1)")
-        # Διαγραφή των απλών χρηστών (όχι admin)
+        
+        # Διαγραφή των απλών χρηστών
         conn.execute("DELETE FROM users WHERE role = 1")
         
         # Λήψη όλων των product_uris από τον πίνακα product_popularity
@@ -47,7 +49,7 @@ def seed_database():
         product_uris = [p["product_uri"] for p in products]
         
         if not product_uris:
-            print("Δεν βρέθηκαν προϊόντα! Βεβαιώσου ότι έχει τρέξει το GraphDB και το db.sync_popularity().")
+            print("Δεν βρέθηκαν προϊόντα")
             return
             
         print(f"Δημιουργία 200 χρηστών με password 'password123'...")
@@ -86,8 +88,7 @@ def seed_database():
             chosen_uris = random.sample(product_uris, num_products)
             
             for uri in chosen_uris:
-                # Η ημερομηνία προσθήκης (added_at) πρέπει να είναι *μετά* την ημερομηνία εγγραφής (created_at)
-                # και *πριν* από τώρα
+                # Η ημερομηνία προσθήκης (added_at) πρέπει να είναι μετά την ημερομηνία εγγραφής (created_at) και πριν από τώρα
                 now = datetime.now()
                 time_diff = now - user_created_at
                 if time_diff.total_seconds() > 0:
@@ -101,8 +102,7 @@ def seed_database():
                     (uid, uri, added_at.strftime("%Y-%m-%d %H:%M:%S"))
                 )
                 
-                # Ενημέρωση στατιστικών (total_additions & popularity_score αυξάνονται, 
-                # θεωρούμε ότι δεν τα αφαίρεσαν για να υπάρχει πλούσια δράση)
+                # Ενημέρωση στατιστικών 
                 conn.execute(
                     """
                     UPDATE product_popularity 

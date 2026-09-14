@@ -15,11 +15,10 @@
   grid-template-columns: 0 minmax(0, 1fr);
 }
 
-/* --- SIDEBAR ΤΕΡΜΑ ΠΑΝΩ --- */
 .category-sidebar {
   position: sticky;
   top: 0;
-  height: 100vh; /* Πιάνει όλο το ύψος της οθόνης */
+  height: 100vh; 
   margin: 0;
   padding: 24px;
   overflow-y: auto;
@@ -68,7 +67,7 @@
 .sidebar-close:hover {
   background: rgba(6, 182, 212, 0.25);
   color: #082f49;
-  transform: rotate(90deg) scale(1.1); /* Κάνει μια μικρή περιστροφή και μεγαλώνει! */
+  transform: rotate(90deg) scale(1.1); 
 }
 
 .sidebar-close mat-icon {
@@ -102,7 +101,6 @@
   box-shadow: 0 6px 15px rgba(8, 47, 73, 0.05);
 }
 
-/* --- MAIN WRAPPER & HEADER --- */
 .main-wrapper {
   display: flex;
   flex-direction: column;
@@ -139,7 +137,6 @@
   box-shadow: 0 10px 30px rgba(8, 47, 73, 0.08);
 }
 
-/* --- ΥΠΟΛΟΙΠΑ ΣΤΟΙΧΕΙΑ ΜΕΝΟΥ --- */
 .topbar-left { display: flex; align-items: center; gap: 16px; }
 .menu-button { width: 44px; height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 0; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
 .menu-button:hover { background: #ecfeff; transform: scale(1.05); }
@@ -152,7 +149,6 @@
 
 .top-nav { display: flex; align-items: center; justify-content: center; gap: 4px; position: relative; }
 
-/* Καθαροί σύνδεσμοι κειμένου — χωρίς πλαίσια/κύκλους */
 .nav-link {
   position: relative;
   text-decoration: none;
@@ -166,8 +162,6 @@
 .nav-link:hover { color: #0369a1; background: transparent; }
 .nav-link.active { color: #0369a1; }
 
-
-/* Φωτεινό underline που γλιστράει στον ενεργό σύνδεσμο */
 .nav-indicator {
   position: absolute;
   bottom: 2px;
@@ -182,7 +176,6 @@
   pointer-events: none;
 }
 
-/* Το ghost-link (Σύνδεση) κρατά το pill στυλ του */
 .ghost-link { text-decoration: none; padding: 10px 20px; border-radius: 999px; font-weight: 800; color: #0f4563; transition: all 0.3s; }
 .ghost-link:hover { color: #0369a1; background: rgba(6, 182, 212, 0.1); }
 .account-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
@@ -254,7 +247,7 @@
   height: 18px;
 }
 
-/* --- RESPONSIVE KINHTOY --- */
+/* RESPONSIVE KINHTOY */
 .sidebar-backdrop {
   display: none;
 }

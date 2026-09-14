@@ -9,8 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRE_HOURS
 
-# Πρακτικό regex εγκυρότητας email: local-part, @, domain με τουλάχιστον ένα
-# label και TLD ≥ 2 γραμμάτων. Απορρίπτει π.χ. "a@b", "a@b." , "a@.com".
+# Πρακτικό regex εγκυρότητας email: local-part, @, domain με τουλάχιστον ένα label και TLD ≥ 2 γραμμάτων.
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$")
 
 

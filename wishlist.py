@@ -2,18 +2,16 @@
 import db
 from graphdb import query_graphdb
 
-
+#Toggle ενός προϊόντος στη wishlist
 def toggle(user_id, product_uri):
-    """Toggle ενός προϊόντος στη wishlist. Επιστρέφει (is_wishlisted, popularity)."""
     return db.toggle_wishlist(user_id, product_uri)
 
-
+#Αφαίρεση ενός προϊόντος από τη wishlist
 def remove(user_id, product_uri):
     db.remove_from_wishlist(user_id, product_uri)
 
-
+#Τα προϊόντα της wishlist ενός χρήστη, με σειρά προσθήκης
 def get_products(user_id) -> list:
-    """Τα προϊόντα της wishlist ενός χρήστη, με σειρά προσθήκης (νεότερα πρώτα)."""
     uris = db.get_wishlist_uris(user_id)
     if not uris:
         return []

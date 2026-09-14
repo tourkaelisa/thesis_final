@@ -1,5 +1,5 @@
 #!/bin/sh
-# Στήνει αυτόματα τη GraphDB ώστε ο καθηγητής να τρέχει μόνο "docker compose up":
+# Στήνει αυτόματα τη GraphDB ώστε ο χρήστης να τρέχει μόνο "docker compose up":
 #   1. περιμένει να σηκωθεί η GraphDB
 #   2. φτιάχνει το repository "eshop_thesis" (αν δεν υπάρχει ήδη)
 #   3. κάνει import το .ttl (μόνο αν το repo είναι άδειο)
