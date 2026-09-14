@@ -88,31 +88,49 @@ def seed_database():
             chosen_uris = random.sample(product_uris, num_products)
             
             for uri in chosen_uris:
-                # Η ημερομηνία προσθήκης (added_at) πρέπει να είναι μετά την ημερομηνία εγγραφής (created_at) και πριν από τώρα
-                now = datetime.now()
-                time_diff = now - user_created_at
-                if time_diff.total_seconds() > 0:
-                    random_seconds = random.uniform(0, time_diff.total_seconds())
-                    added_at = user_created_at + timedelta(seconds=random_seconds)
-                else:
-                    added_at = now
-                    
-                conn.execute(
-                    "INSERT INTO wishlist (user_id, product_uri, added_at) VALUES (?, ?, ?)",
-                    (uid, uri, added_at.strftime("%Y-%m-%d %H:%M:%S"))
-                )
+                # 35% πιθανότητα ο χρήστης να εγκατέλειψε το προϊόν 
+                # (το πρόσθεσε αλλά το αφαίρεσε αργότερα)
+                is_abandoned = random.random() < 0.35 
                 
-                # Ενημέρωση στατιστικών 
-                conn.execute(
-                    """
-                    UPDATE product_popularity 
-                    SET popularity_score = popularity_score + 1,
-                        total_additions = total_additions + 1
-                    WHERE product_uri = ?
-                    """,
-                    (uri,)
-                )
-                wishlist_count += 1
+                if not is_abandoned:
+                    # Η ημερομηνία προσθήκης (added_at) πρέπει να είναι μετά την ημερομηνία εγγραφής (created_at) και πριν από τώρα
+                    now = datetime.now()
+                    time_diff = now - user_created_at
+                    if time_diff.total_seconds() > 0:
+                        random_seconds = random.uniform(0, time_diff.total_seconds())
+                        added_at = user_created_at + timedelta(seconds=random_seconds)
+                    else:
+                        added_at = now
+                        
+                    conn.execute(
+                        "INSERT INTO wishlist (user_id, product_uri, added_at) VALUES (?, ?, ?)",
+                        (uid, uri, added_at.strftime("%Y-%m-%d %H:%M:%S"))
+                    )
+                    
+                    # Ενημέρωση στατιστικών: Αυξάνεται ΚΑΙ το popularity (επειδή το κράτησε) 
+                    # ΚΑΙ το total_additions (αφού έγινε προσθήκη)
+                    conn.execute(
+                        """
+                        UPDATE product_popularity 
+                        SET popularity_score = popularity_score + 1,
+                            total_additions = total_additions + 1
+                        WHERE product_uri = ?
+                        """,
+                        (uri,)
+                    )
+                    wishlist_count += 1
+                else:
+                    # ΕΓΚΑΤΑΛΕΙΨΗ (Abandonment): 
+                    # Ο χρήστης το πρόσθεσε (άρα αυξάνεται το total_additions)
+                    # Αλλά το αφαίρεσε μετά (άρα το popularity_score μένει ίδιο και διαγράφηκε από το wishlist)
+                    conn.execute(
+                        """
+                        UPDATE product_popularity 
+                        SET total_additions = total_additions + 1
+                        WHERE product_uri = ?
+                        """,
+                        (uri,)
+                    )
                 
         conn.commit()
         print(f"Ολοκληρώθηκε! Προστέθηκαν 200 χρήστες και {wishlist_count} προσθήκες σε wishlists.")
