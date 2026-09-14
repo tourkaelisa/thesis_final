@@ -16,18 +16,14 @@
 docker compose up --build
 ```
 
-Αυτό σηκώνει αυτόματα:
-
-| Service   | Τι είναι                    | Διεύθυνση                |
-|-----------|-----------------------------|--------------------------|
-| frontend  | Angular (UI)                | http://localhost:4200    |  
-| graphdb   | GraphDB triplestore         | http://localhost:7200    |
-
 ## Άνοιγμα της εφαρμογής
 
 Μόλις δείτε στα logs ότι το frontend είναι έτοιμο, ανοίξτε:
 
 **http://localhost:4200**
+
+Για το GraphDB, ανοίξτε: 
+**http://localhost:7200**
 
 ## Τερματισμός
 
