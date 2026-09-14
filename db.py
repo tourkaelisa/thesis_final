@@ -117,7 +117,7 @@ def sync_popularity(graph: rdflib.Graph):
         print("Synced popularity from wishlist (0 = κανένας στα αγαπημένα).")
 
 
-def create_user(first_name, last_name, email, phone, password_hash, terms_accepted) -> int:
+def create_user(first_name, last_name, email, phone, password_hash, terms_accepted, role=1) -> int:
     """Δημιουργεί μια νέα εγγραφή χρήστη στη βάση (πίνακας users) 
     και επιστρέφει το μοναδικό αναγνωριστικό (id) που του ανατέθηκε.
     """
@@ -127,9 +127,9 @@ def create_user(first_name, last_name, email, phone, password_hash, terms_accept
             INSERT INTO users (
                 first_name, last_name, email, phone, password_hash, terms_accepted, role
             )
-            VALUES (?, ?, ?, ?, ?, ?, 1)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (first_name, last_name, email, phone, password_hash, terms_accepted),
+            (first_name, last_name, email, phone, password_hash, terms_accepted, role),
         )
         return cursor.lastrowid
 

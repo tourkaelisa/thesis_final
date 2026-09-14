@@ -92,6 +92,9 @@ async def register_user(user: UserRegistration):
         raise HTTPException(status_code=400, detail="Terms must be accepted.")
 
     normalized_email = user.email  # ήδη επικυρωμένο & κανονικοποιημένο από το schema
+    
+    # Αυτόματη ανάθεση ρόλου διαχειριστή αν το email ταιριάζει με το ADMIN_EMAIL
+    assigned_role = 2 if normalized_email.lower() == ADMIN_EMAIL.lower() else 1
 
     try:
         user_id = db.create_user(
@@ -101,6 +104,7 @@ async def register_user(user: UserRegistration):
             user.phone.strip() if user.phone else None,
             hash_password(user.password),
             1 if user.terms else 0,
+            role=assigned_role
         )
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409, detail="Email already exists.")
@@ -114,8 +118,8 @@ async def register_user(user: UserRegistration):
         "firstName": user.firstName.strip(),
         "lastName": user.lastName.strip(),
         "email": normalized_email,
-        "role": 1,
-        "token": create_token(user_id, 1),
+        "role": assigned_role,
+        "token": create_token(user_id, assigned_role),
     }
 
 
